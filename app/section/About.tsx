@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Zap, Code, Heart } from "lucide-react";
+import { Variants } from "framer-motion"; // Add this import
 
 const CORE_VALUES = [
   { icon: <Zap size={18} />, title: "Performance", desc: "Optimizing every line for speed and scalability." },
@@ -10,11 +11,17 @@ const CORE_VALUES = [
   { icon: <Heart size={18} />, title: "Craftsmanship", desc: "Pixel-perfect UI with fluid interactions." },
 ];
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 28 },
   show: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.1 + 0.2, duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.1 + 0.2,
+      duration: 0.65,
+      // Adding "as const" or typing the object ensures TS recognizes the cubic-bezier
+      ease: [0.16, 1, 0.3, 1], 
+    },
   }),
 };
 
