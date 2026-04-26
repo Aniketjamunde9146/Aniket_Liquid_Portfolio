@@ -425,9 +425,9 @@ const fadeUp: Variants = { // 2. Apply the type here
               <MagneticButton primary>
                 Start a Project <ArrowUpRight size={18} />
               </MagneticButton>
-             <a 
-  href="../../public/Aniket_Jamunde_CV.pdf" // Path to your PDF in the 'public' folder
-  download="Aniket_Jamunde_CV.pdf" // The name the file will have when downloaded
+           <a 
+  href="/Aniket_Jamunde_CV.pdf"
+  download="Aniket_Jamunde_CV.pdf"
   style={{ textDecoration: 'none' }}
 >
   <MagneticButton>
