@@ -10,23 +10,16 @@ import Footer from "./section/Footer";
 
 export default function Home() {
   return (
-    <main >
-      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      {/* This component handles its own viewport height and centering */}
-      <Hero />
-      <Project />
-      <About />
-      <Skills/>
-      <Services/>
-      <Work />
-      <Contact />
+    <main>
+      <Hero />                                        {/* no id needed, it's root */}
+      <section id="projects"><Project /></section>
+      <section id="about"><About /></section>
+      <section id="skills"><Skills /></section>
+      <section id="services"><Services /></section>
+      <section id="work"><Work /></section>
+      <section id="contact"><Contact /></section>
       <Footer />
-
-      {/* ── Dock (fixed, always visible) ─────────────────────────────────────── */}
-      {/* Ensure your Dock has a high z-index (e.g., z-50) in its own code */}
       <Dock />
-      
-      {/* You can add more sections here like <Projects /> or <Experience /> */}
     </main>
   );
 }
