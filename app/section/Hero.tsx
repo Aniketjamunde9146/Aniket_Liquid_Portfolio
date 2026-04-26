@@ -6,6 +6,7 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
+  Variants // 1. Add this import
 } from "framer-motion";
 import { ArrowUpRight, Download, Sparkles, Globe, Smartphone, Zap } from "lucide-react";
 
@@ -94,10 +95,17 @@ export default function Hero() {
     hidden: {},
     show: { transition: { staggerChildren: 0.1 } },
   };
-  const fadeUp = {
-    hidden: { opacity: 0, y: 28 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
-  };
+const fadeUp: Variants = { // 2. Apply the type here
+  hidden: { opacity: 0, y: 28 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      duration: 0.7, 
+      ease: [0.16, 1, 0.3, 1] 
+    } 
+  },
+};
 
   return (
     <>
