@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion"; // Add Variants here
 import {
   Globe, Smartphone, ShoppingCart, Palette,
   Zap, Shield, ArrowRight, CheckCircle2
@@ -71,11 +71,16 @@ const SERVICES = [
   },
 ];
 
-const fadeUp = (i: number) => ({
+const fadeUp = (i: number): Variants => ({ // Added : Variants here
   hidden: { opacity: 0, y: 30 },
   show: {
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      delay: i * 0.08, 
+      duration: 0.6, 
+      ease: [0.16, 1, 0.3, 1] 
+    },
   },
 });
 
