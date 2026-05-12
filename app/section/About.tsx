@@ -269,7 +269,7 @@ export default function About() {
             transition={{ delay: 0.5, duration: 0.6 }}
           >
             <div>
-              <div className="stat-num">40+</div>
+              <div className="stat-num">15+</div>
               <div className="stat-lbl">Projects</div>
             </div>
           </motion.div>
@@ -282,7 +282,7 @@ export default function About() {
             transition={{ delay: 0.6, duration: 0.6 }}
           >
             <div>
-              <div className="stat-num">3+</div>
+              <div className="stat-num">1.5+</div>
               <div className="stat-lbl">Yrs Exp</div>
             </div>
           </motion.div>

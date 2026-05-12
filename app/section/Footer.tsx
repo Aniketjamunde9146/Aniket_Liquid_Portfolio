@@ -164,8 +164,8 @@ export default function Footer() {
             </p>
             
             <div className="contact-info">
-              <a href="mailto:ANIKETJAMUNDE4@GMAIL.COM" className="contact-item">
-                <FiMail /> ANIKETJAMUNDE4@GMAIL.COM
+              <a href="mailto:aniketjamunde4@gmail.com" className="contact-item">
+                <FiMail /> aniketjamunde4@gmail.com
               </a>
               <a href="tel:+919146293702" className="contact-item">
                 <FiPhone /> +91 91462 93702

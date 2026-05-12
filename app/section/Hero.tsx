@@ -452,9 +452,9 @@ const fadeUp: Variants = { // 2. Apply the type here
             transition={{ duration: 0.9, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
             {[
-              { num: 3, suffix: "+", label: "Years Experience" },
-              { num: 40, suffix: "+", label: "Projects Done" },
-              { num: 25, suffix: "+", label: "Happy Clients" },
+              { num: 1.5, suffix: "+", label: "Years Experience" },
+              { num: 15, suffix: "+", label: "Projects Done" },
+              { num: 10, suffix: "+", label: "Happy Clients" },
             ].map(({ num, suffix, label }, i) => (
               <motion.div
                 key={i}

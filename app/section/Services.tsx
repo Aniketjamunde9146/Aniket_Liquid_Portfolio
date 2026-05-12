@@ -18,7 +18,7 @@ const SERVICES = [
     color: "#0ea5e9",
     desc: "High-performance web apps with server-side rendering, dynamic routing, and pixel-perfect UI. Built to scale and optimized for the web.",
     perks: ["SEO-ready & blazing fast", "Responsive on all screens", "Clean, maintainable codebase", "API & database integration"],
-    price: "Starting $800",
+    price: "Starting ₹8k",
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const SERVICES = [
     color: "#02569B",
     desc: "Cross-platform mobile apps that feel native. One codebase, two platforms — shipped faster without sacrificing quality.",
     perks: ["iOS & Android from one codebase", "Native-feel animations", "Firebase / Supabase backend", "App Store publishing support"],
-    price: "Starting $1200",
+    price: "Starting ₹15k",
   },
   {
     id: 3,
@@ -38,7 +38,7 @@ const SERVICES = [
     color: "#10b981",
     desc: "Complete online stores with product management, secure payments, and fast checkout flows that convert browsers into buyers.",
     perks: ["Stripe & Razorpay integration", "CMS-driven product catalog", "Cart & order management", "Analytics dashboard"],
-    price: "Starting $1500",
+    price: "Starting ₹20k",
   },
   {
     id: 4,
@@ -48,7 +48,7 @@ const SERVICES = [
     color: "#f59e0b",
     desc: "Intuitive, beautiful interfaces designed for real users. From wireframes to polished prototypes — every pixel intentional.",
     perks: ["User research & flows", "Interactive Figma prototypes", "Component design systems", "Handoff-ready assets"],
-    price: "Starting $500",
+    price: "Starting ₹6k",
   },
   {
     id: 5,
@@ -58,7 +58,7 @@ const SERVICES = [
     color: "#8b5cf6",
     desc: "Diagnose and fix slow websites. I audit, optimize, and deliver measurably faster load times and better search rankings.",
     perks: ["Full Lighthouse audit", "Image & bundle optimization", "Core Web Vitals fix", "Detailed report & fixes"],
-    price: "Starting $300",
+    price: "Starting ₹6k",
   },
   {
     id: 6,
@@ -68,7 +68,7 @@ const SERVICES = [
     color: "#ef4444",
     desc: "Ongoing support so your product stays fast, secure, and up to date. Think of me as your on-call dev.",
     perks: ["Monthly update packages", "Priority bug fixes", "Security patches", "Feature additions"],
-    price: "From $200/mo",
+    price: "From ₹3k/Per Month",
   },
 ];
 
