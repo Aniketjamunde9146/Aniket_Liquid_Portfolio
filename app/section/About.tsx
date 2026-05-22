@@ -431,29 +431,61 @@ export default function About() {
   },[]);
 
   /* Magnetic + ripple buttons */
-  const makeMagnetic = useCallback((ref: React.RefObject<HTMLAnchorElement>) => {
-    const btn = ref.current; if(!btn) return;
+  const makeMagnetic = useCallback(
+  (ref: React.RefObject<HTMLAnchorElement | null>) => {
+    const btn = ref.current;
+    if (!btn) return;
+
     const inner = btn.querySelector<HTMLElement>(".ab-btn-inner");
+
     const onMove = (e: MouseEvent) => {
       const r = btn.getBoundingClientRect();
-      const dx = (e.clientX-r.left-r.width/2)*.3;
-      const dy = (e.clientY-r.top-r.height/2)*.3;
-      btn.style.transform=`translate(${dx}px,${dy}px) scale(1.04)`;
-      if(inner) inner.style.transform=`translate(${dx*.55}px,${dy*.55}px)`;
+      const dx = (e.clientX - r.left - r.width / 2) * 0.3;
+      const dy = (e.clientY - r.top - r.height / 2) * 0.3;
+
+      btn.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
+
+      if (inner) {
+        inner.style.transform = `translate(${dx * 0.55}px,${dy * 0.55}px)`;
+      }
     };
-    const onLeave = () => { btn.style.transform=""; if(inner) inner.style.transform=""; };
+
+    const onLeave = () => {
+      btn.style.transform = "";
+      if (inner) inner.style.transform = "";
+    };
+
     const onClick = (e: MouseEvent) => {
-      const r=btn.getBoundingClientRect();
-      const rp=document.createElement("span"); rp.className="ab-btn-ripple";
-      const s=Math.max(r.width,r.height);
-      rp.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;
-      btn.appendChild(rp); rp.addEventListener("animationend",()=>rp.remove());
+      const r = btn.getBoundingClientRect();
+
+      const rp = document.createElement("span");
+      rp.className = "ab-btn-ripple";
+
+      const s = Math.max(r.width, r.height);
+
+      rp.style.cssText = `
+        width:${s}px;
+        height:${s}px;
+        left:${e.clientX - r.left - s / 2}px;
+        top:${e.clientY - r.top - s / 2}px
+      `;
+
+      btn.appendChild(rp);
+      rp.addEventListener("animationend", () => rp.remove());
     };
-    btn.addEventListener("mousemove",onMove);
-    btn.addEventListener("mouseleave",onLeave);
-    btn.addEventListener("click",onClick);
-    return ()=>{btn.removeEventListener("mousemove",onMove);btn.removeEventListener("mouseleave",onLeave);btn.removeEventListener("click",onClick)};
-  },[]);
+
+    btn.addEventListener("mousemove", onMove);
+    btn.addEventListener("mouseleave", onLeave);
+    btn.addEventListener("click", onClick);
+
+    return () => {
+      btn.removeEventListener("mousemove", onMove);
+      btn.removeEventListener("mouseleave", onLeave);
+      btn.removeEventListener("click", onClick);
+    };
+  },
+  []
+);
 
   useEffect(()=>{ const c1=makeMagnetic(btn1Ref); const c2=makeMagnetic(btn2Ref); return ()=>{c1?.();c2?.();}; },[v,makeMagnetic]);
 
