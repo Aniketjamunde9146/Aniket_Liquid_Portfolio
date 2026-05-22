@@ -1,434 +1,847 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
+
 import { useState } from "react";
+
 import {
-  FaReact, FaHtml5, FaCss3Alt, FaAndroid, FaNodeJs, FaGithub
+  FaReact,
+  FaHtml5,
+  FaCss3Alt,
+  FaAndroid,
+  FaNodeJs,
+  FaGithub,
 } from "react-icons/fa";
+
 import {
-  SiFlutter, SiFirebase, SiTypescript, SiJavascript,
-  SiNetlify, SiVercel, SiMongodb, SiHostinger,
-  SiDart, SiIos, SiClerk, SiSupabase, SiNextdotjs
+  SiFlutter,
+  SiFirebase,
+  SiTypescript,
+  SiJavascript,
+  SiNetlify,
+  SiVercel,
+  SiMongodb,
+  SiHostinger,
+  SiClerk,
+  SiSupabase,
+  SiNextdotjs,
 } from "react-icons/si";
-import { X } from "lucide-react";
 
-/* ── TYPES ── */
-interface TechItem { name: string; icon: React.ReactNode; color: string; level: number; group?: string; }
-interface TechGroup { id: string; title: string; color: string; description: string; items: TechItem[]; }
+/* ───────────────────────────────────────────── */
 
-/* ── DATA ── */
-const techGroups: TechGroup[] = [
+const techGroups = [
   {
-    id: "frontend", title: "Frontend & App", color: "#0ea5e9",
-    description: "Building immersive interfaces",
+    id: "frontend",
+    title: "Frontend",
+
     items: [
-      { name: "React",      icon: <FaReact />,       color: "#61DAFB", level: 95 },
-      { name: "Next.js",    icon: <SiNextdotjs />,   color: "#000000", level: 90 },
-      { name: "Flutter",    icon: <SiFlutter />,     color: "#02569B", level: 85 },
-      { name: "Dart",       icon: <SiDart />,        color: "#00B4AB", level: 82 },
-      { name: "iOS",        icon: <SiIos />,         color: "#555555", level: 70 },
-      { name: "Android",    icon: <FaAndroid />,     color: "#3DDC84", level: 75 },
-      { name: "TypeScript", icon: <SiTypescript />,  color: "#3178C6", level: 92 },
-      { name: "JavaScript", icon: <SiJavascript />,  color: "#F7DF1E", level: 97 },
-      { name: "HTML",       icon: <FaHtml5 />,       color: "#E34F26", level: 98 },
-      { name: "CSS",        icon: <FaCss3Alt />,     color: "#1572B6", level: 95 },
-    ]
+      {
+        name: "React",
+        icon: <FaReact />,
+        color: "#61DAFB",
+        level: 95,
+      },
+
+      {
+        name: "Next.js",
+        icon: <SiNextdotjs />,
+        color: "#ffffff",
+        level: 92,
+      },
+
+      {
+        name: "Flutter",
+        icon: <SiFlutter />,
+        color: "#54C5F8",
+        level: 88,
+      },
+
+      {
+        name: "TypeScript",
+        icon: <SiTypescript />,
+        color: "#3178C6",
+        level: 92,
+      },
+
+      {
+        name: "JavaScript",
+        icon: <SiJavascript />,
+        color: "#F7DF1E",
+        level: 97,
+      },
+
+      {
+        name: "HTML",
+        icon: <FaHtml5 />,
+        color: "#E34F26",
+        level: 98,
+      },
+
+      {
+        name: "CSS",
+        icon: <FaCss3Alt />,
+        color: "#1572B6",
+        level: 96,
+      },
+    ],
   },
+
   {
-    id: "backend", title: "Backend & Cloud", color: "#7c3aed",
-    description: "Scalable server-side logic",
+    id: "backend",
+    title: "Backend",
+
     items: [
-      { name: "Node.js",   icon: <FaNodeJs />,    color: "#68A063", level: 88 },
-      { name: "Firebase",  icon: <SiFirebase />,  color: "#FFCA28", level: 90 },
-      { name: "MongoDB",   icon: <SiMongodb />,   color: "#47A248", level: 84 },
-      { name: "Clerk",     icon: <SiClerk />,     color: "#6C47FF", level: 80 },
-      { name: "Supabase",  icon: <SiSupabase />,  color: "#3ECF8E", level: 78 },
-    ]
+      {
+        name: "Node.js",
+        icon: <FaNodeJs />,
+        color: "#68A063",
+        level: 90,
+      },
+
+      {
+        name: "Firebase",
+        icon: <SiFirebase />,
+        color: "#FFCA28",
+        level: 92,
+      },
+
+      {
+        name: "MongoDB",
+        icon: <SiMongodb />,
+        color: "#47A248",
+        level: 84,
+      },
+
+      {
+        name: "Clerk",
+        icon: <SiClerk />,
+        color: "#6C47FF",
+        level: 80,
+      },
+
+      {
+        name: "Supabase",
+        icon: <SiSupabase />,
+        color: "#3ECF8E",
+        level: 78,
+      },
+    ],
   },
+
   {
-    id: "devops", title: "Tools & Flow", color: "#f59e0b",
-    description: "Deployment and collaboration",
+    id: "tools",
+    title: "Tools",
+
     items: [
-      { name: "GitHub",    icon: <FaGithub />,    color: "#181717", level: 95 },
-      { name: "Vercel",    icon: <SiVercel />,    color: "#000000", level: 92 },
-      { name: "Netlify",   icon: <SiNetlify />,   color: "#00C7B7", level: 88 },
-      { name: "Hostinger", icon: <SiHostinger />, color: "#673DE6", level: 80 },
-    ]
-  }
+      {
+        name: "GitHub",
+        icon: <FaGithub />,
+        color: "#ffffff",
+        level: 95,
+      },
+
+      {
+        name: "Vercel",
+        icon: <SiVercel />,
+        color: "#ffffff",
+        level: 92,
+      },
+
+      {
+        name: "Netlify",
+        icon: <SiNetlify />,
+        color: "#00C7B7",
+        level: 88,
+      },
+
+      {
+        name: "Hostinger",
+        icon: <SiHostinger />,
+        color: "#673DE6",
+        level: 82,
+      },
+    ],
+  },
 ];
 
-const allItems: TechItem[] = techGroups.flatMap(g => g.items.map(i => ({ ...i, group: g.id })));
+/* ───────────────────────────────────────────── */
 
-/* ── TECH CARD ── */
-function TechCard({ item, onClick }: { item: TechItem; onClick: (i: TechItem) => void }) {
+function TechCard({
+  item,
+  onClick,
+}: any) {
+
   return (
+
     <motion.button
       layout
       onClick={() => onClick(item)}
-      className="tech-card"
-      style={{ "--accent": item.color } as React.CSSProperties}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      whileHover={{ y: -6 }}
-      whileTap={{ scale: 0.94 }}
+      className="tk-card"
+
+      whileHover={{
+        y: -4,
+      }}
+
+      whileTap={{
+        scale: 0.98,
+      }}
     >
-      <div className="card-icon" style={{ background: `${item.color}15` }}>
+
+      <div
+        className="tk-icon"
+        style={{
+          color: item.color,
+        }}
+      >
         {item.icon}
       </div>
-      <span className="card-name">{item.name}</span>
-      <div className="liq-bar">
-        <motion.div
-          className="liq-fill"
-          initial={{ width: 0 }}
-          whileInView={{ width: `${item.level}%` }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.1, ease: "circOut" }}
-          style={{ background: `linear-gradient(90deg, ${item.color}aa, ${item.color})` }}
-        />
+
+      <div className="tk-content">
+
+        <h4>{item.name}</h4>
+
+        <div className="tk-bar">
+
+          <motion.div
+            className="tk-fill"
+
+            initial={{
+              width: 0,
+            }}
+
+            whileInView={{
+              width: `${item.level}%`,
+            }}
+
+            transition={{
+              duration: 1,
+              ease: "easeOut",
+            }}
+
+            style={{
+              background: item.color,
+            }}
+          />
+
+        </div>
+
       </div>
-      <span className="card-pct">{item.level}%</span>
+
+      <span className="tk-level">
+        {item.level}%
+      </span>
+
     </motion.button>
+
   );
+
 }
 
-/* ── MAIN ── */
-export default function Tech() {
-  const [activeGroup, setActiveGroup] = useState("all");
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<TechItem | null>(null);
+/* ───────────────────────────────────────────── */
 
-  const filtered = (activeGroup === "all" ? allItems : allItems.filter(i => i.group === activeGroup))
-    .filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
+export default function TechStack() {
+
+  const [selected, setSelected] =
+    useState<any>(null);
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        .tech-root {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          padding: 120px 6vw;
-          background: #f8fafc;
-          position: relative;
-          overflow: hidden;
-          min-height: 100vh;
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+      .tk-wrap{
+        position:relative;
+
+        overflow:hidden;
+
+        background:#000;
+
+        padding:
+          clamp(5rem,10vh,7rem)
+          0
+          clamp(5rem,9vh,7rem);
+
+        isolation:isolate;
+      }
+
+      /* ───────── SOFT BG ───────── */
+
+      .tk-wrap::before{
+        content:'';
+
+        position:absolute;
+        inset:0;
+
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(70,130,255,.05),
+            transparent 35%
+          ),
+
+          radial-gradient(
+            circle at bottom right,
+            rgba(160,80,255,.05),
+            transparent 35%
+          );
+
+        pointer-events:none;
+      }
+
+      /* ───────── GRAIN ───────── */
+
+      .tk-wrap::after{
+        content:'';
+
+        position:absolute;
+        inset:0;
+
+        opacity:.025;
+
+        background-image:
+          radial-gradient(
+            rgba(255,255,255,.15) 1px,
+            transparent 1px
+          );
+
+        background-size:3px 3px;
+
+        pointer-events:none;
+      }
+
+      /* ───────── INNER ───────── */
+
+      .tk-inner{
+        position:relative;
+
+        z-index:3;
+
+        max-width:1200px;
+
+        margin:0 auto;
+
+        padding:0 2rem;
+      }
+
+      /* ───────── HEADER ───────── */
+
+      .tk-head{
+        text-align:center;
+
+        max-width:720px;
+
+        margin:0 auto 5rem;
+      }
+
+      .tk-eyebrow{
+        font-family:'DM Sans',sans-serif;
+
+        font-size:.72rem;
+
+        font-weight:500;
+
+        letter-spacing:.25em;
+
+        text-transform:uppercase;
+
+        color:rgba(255,255,255,.28);
+
+        margin-bottom:1rem;
+      }
+
+      .tk-title{
+        font-family:'DM Sans',sans-serif;
+
+        font-size:
+          clamp(2.8rem,7vw,5rem);
+
+        font-weight:600;
+
+        line-height:1;
+
+        letter-spacing:-.05em;
+
+        color:#fff;
+
+        margin-bottom:1.2rem;
+      }
+
+      .tk-title span{
+        background:
+          linear-gradient(
+            90deg,
+            rgba(120,160,255,1),
+            rgba(190,150,255,1)
+          );
+
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+      }
+
+      .tk-desc{
+        font-family:'DM Sans',sans-serif;
+
+        font-size:1rem;
+
+        line-height:1.8;
+
+        color:rgba(255,255,255,.38);
+      }
+
+      /* ───────── GROUP ───────── */
+
+      .tk-group{
+        margin-bottom:4rem;
+      }
+
+      .tk-group-top{
+        display:flex;
+        align-items:center;
+
+        gap:.8rem;
+
+        margin-bottom:1.4rem;
+      }
+
+      .tk-dot{
+        width:7px;
+        height:7px;
+
+        border-radius:50%;
+
+        background:
+          rgba(120,160,255,.9);
+
+        box-shadow:
+          0 0 12px rgba(120,160,255,.35);
+      }
+
+      .tk-group h3{
+        font-family:'DM Sans',sans-serif;
+
+        font-size:.78rem;
+
+        font-weight:500;
+
+        text-transform:uppercase;
+
+        letter-spacing:.18em;
+
+        color:rgba(255,255,255,.38);
+      }
+
+      /* ───────── GRID ───────── */
+
+      .tk-grid{
+        display:grid;
+
+        grid-template-columns:
+          repeat(
+            auto-fit,
+            minmax(240px,1fr)
+          );
+
+        gap:1rem;
+      }
+
+      /* ───────── CARD ───────── */
+
+      .tk-card{
+        position:relative;
+
+        display:flex;
+        align-items:center;
+
+        gap:1rem;
+
+        width:100%;
+
+        border:none;
+
+        border-radius:22px;
+
+        padding:1.2rem 1.2rem;
+
+        text-align:left;
+
+        background:
+          rgba(255,255,255,.03);
+
+        border:
+          1px solid rgba(255,255,255,.06);
+
+        backdrop-filter:blur(18px);
+
+        transition:
+          transform .5s cubic-bezier(.22,1,.36,1),
+          border-color .4s ease,
+          background .4s ease,
+          box-shadow .4s ease;
+
+        cursor:pointer;
+      }
+
+      .tk-card:hover{
+        background:
+          rgba(255,255,255,.045);
+
+        border-color:
+          rgba(255,255,255,.12);
+
+        box-shadow:
+          0 10px 30px rgba(0,0,0,.25);
+      }
+
+      .tk-icon{
+        width:52px;
+        height:52px;
+
+        flex-shrink:0;
+
+        border-radius:16px;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        background:
+          rgba(255,255,255,.04);
+
+        border:
+          1px solid rgba(255,255,255,.05);
+
+        font-size:1.3rem;
+      }
+
+      .tk-content{
+        flex:1;
+      }
+
+      .tk-content h4{
+        font-family:'DM Sans',sans-serif;
+
+        font-size:.95rem;
+
+        font-weight:500;
+
+        color:#fff;
+
+        margin-bottom:.8rem;
+      }
+
+      .tk-bar{
+        width:100%;
+        height:4px;
+
+        border-radius:999px;
+
+        overflow:hidden;
+
+        background:
+          rgba(255,255,255,.05);
+      }
+
+      .tk-fill{
+        height:100%;
+
+        border-radius:999px;
+      }
+
+      .tk-level{
+        font-size:.78rem;
+
+        color:rgba(255,255,255,.32);
+
+        font-weight:500;
+      }
+
+      /* ───────── MODAL ───────── */
+
+      .tk-overlay{
+        position:fixed;
+
+        inset:0;
+
+        z-index:100;
+
+        background:
+          rgba(0,0,0,.72);
+
+        backdrop-filter:blur(12px);
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        padding:2rem;
+      }
+
+      .tk-modal{
+        width:100%;
+        max-width:380px;
+
+        border-radius:28px;
+
+        padding:2.4rem;
+
+        background:
+          rgba(12,14,18,.92);
+
+        border:
+          1px solid rgba(255,255,255,.08);
+
+        backdrop-filter:blur(24px);
+
+        text-align:center;
+
+        position:relative;
+      }
+
+      .tk-close{
+        position:absolute;
+
+        top:16px;
+        right:16px;
+
+        width:34px;
+        height:34px;
+
+        border:none;
+
+        border-radius:50%;
+
+        background:
+          rgba(255,255,255,.05);
+
+        color:#fff;
+
+        cursor:pointer;
+      }
+
+      .tk-modal-icon{
+        font-size:3.2rem;
+
+        margin-bottom:1rem;
+      }
+
+      .tk-modal h2{
+        font-size:1.8rem;
+
+        font-weight:600;
+
+        color:#fff;
+
+        margin-bottom:1.4rem;
+      }
+
+      .tk-modal-bar{
+        width:100%;
+        height:6px;
+
+        border-radius:999px;
+
+        overflow:hidden;
+
+        background:
+          rgba(255,255,255,.05);
+
+        margin-bottom:1rem;
+      }
+
+      .tk-modal-fill{
+        height:100%;
+      }
+
+      .tk-modal p{
+        color:rgba(255,255,255,.42);
+      }
+
+      @media(max-width:768px){
+
+        .tk-grid{
+          grid-template-columns:1fr;
         }
 
-        /* ── BLOBS ── */
-        .tech-blob {
-          position: absolute; border-radius: 50%;
-          filter: blur(90px); pointer-events: none;
-          animation: tbdrift ease-in-out infinite alternate;
-        }
-        .tb1 { width:500px;height:500px;background:#0ea5e9;opacity:.09;top:-100px;left:-80px;animation-duration:19s; }
-        .tb2 { width:400px;height:400px;background:#001f3f;opacity:.07;bottom:-80px;right:-80px;animation-duration:23s;animation-delay:-7s; }
-        .tb3 { width:260px;height:260px;background:#7dd3fc;opacity:.09;top:50%;left:42%;animation-duration:15s;animation-delay:-4s; }
-        @keyframes tbdrift {
-          from { transform:translate(0,0) scale(1); }
-          to   { transform:translate(50px,40px) scale(1.1); }
-        }
+      }
 
-        /* dot grid */
-        .tech-dotgrid {
-          position:absolute;inset:0;pointer-events:none;
-          background-image:radial-gradient(rgba(0,31,63,.06) 1px,transparent 1px);
-          background-size:38px 38px;
-          mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);
-        }
-
-        /* ── HEADER ── */
-        .tech-header { text-align:center; margin-bottom:20px; position:relative; z-index:2; }
-        .tech-eyebrow {
-          display:inline-flex;align-items:center;gap:8px;
-          background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.18);
-          padding:6px 16px;border-radius:100px;
-          font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-          color:#0ea5e9;margin-bottom:20px;
-        }
-        .tech-eyebrow span {
-          width:6px;height:6px;background:#0ea5e9;border-radius:50%;display:inline-block;
-          animation:pulse 1.8s infinite;
-        }
-        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-        .tech-title {
-          font-family:'Bebas Neue',sans-serif;
-          font-size:clamp(3.5rem,8vw,6rem);
-          line-height:.88;color:#010f1e;margin-bottom:16px;
-        }
-        .tech-title span{color:#0ea5e9;}
-        .tech-sub{font-size:1rem;color:#94a3b8;font-weight:500;margin-bottom:44px;}
-
-        /* ── CONTROLS ── */
-        .controls {
-          display:flex;flex-direction:column;align-items:center;gap:20px;
-          margin-bottom:52px;position:relative;z-index:2;
-        }
-
-        /* filter pills — liquid */
-        .filter-bar {
-          display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
-          background:rgba(255,255,255,.6);backdrop-filter:blur(14px);
-          border:1px solid rgba(0,31,63,.07);
-          padding:8px;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          transition:border-radius .5s ease;
-        }
-        .filter-bar:hover { border-radius:40% 60% 40% 60% / 50% 50% 50% 50%; }
-        .f-pill {
-          padding:9px 22px;border:none;cursor:pointer;
-          font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;
-          background:transparent;color:#64748b;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          transition:all .45s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .f-pill:hover{background:rgba(0,31,63,.04);color:#001f3f;border-radius:40% 60% 40% 60% / 50% 50% 50% 50%;}
-        .f-pill.active{
-          background:#001f3f;color:#fff;border-radius:50%;
-          box-shadow:0 8px 22px rgba(0,31,63,.22);
-        }
-
-        /* search */
-        .tech-search {
-          background:rgba(255,255,255,.7);backdrop-filter:blur(14px);
-          border:1px solid rgba(0,31,63,.09);
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          padding:12px 26px;width:100%;max-width:400px;
-          font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;color:#001f3f;
-          outline:none;
-          transition:all .45s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .tech-search::placeholder{color:#94a3b8;}
-        .tech-search:focus{
-          border-radius:40% 60% 40% 60% / 50% 50% 50% 50%;
-          border-color:rgba(14,165,233,.3);
-          box-shadow:0 0 0 4px rgba(14,165,233,.08);
-          background:#fff;
-        }
-
-        /* ── GRID ── */
-        .tech-grid {
-          display:grid;
-          grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
-          gap:20px;position:relative;z-index:2;
-          max-width:1280px;margin:0 auto;
-        }
-
-        /* ── CARD — LIQUID ── */
-        .tech-card {
-          background:rgba(255,255,255,.62);
-          backdrop-filter:blur(20px);
-          border:1px solid rgba(0,31,63,.07);
-          border-radius:40% 20% 40% 20% / 20% 40% 20% 40%;
-          padding:24px 16px;
-          display:flex;flex-direction:column;align-items:center;gap:10px;
-          cursor:pointer;
-          transition:
-            border-radius .55s cubic-bezier(0.175,0.885,0.32,1.275),
-            background .3s ease,
-            box-shadow .3s ease,
-            border-color .3s ease;
-        }
-        .tech-card:hover{
-          border-radius:20% 40% 20% 40% / 40% 20% 40% 20%;
-          background:#fff;
-          box-shadow:0 24px 48px -12px rgba(0,31,63,.13);
-          border-color:rgba(var(--accent-rgb),.2);
-        }
-
-        /* icon blob */
-        .card-icon {
-          width:58px;height:58px;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          display:flex;align-items:center;justify-content:center;
-          font-size:1.75rem;color:var(--accent);
-          transition:border-radius .45s ease, background .3s ease;
-        }
-        .tech-card:hover .card-icon { border-radius:50%; }
-
-        .card-name{font-weight:800;font-size:.88rem;color:#001f3f;}
-
-        /* progress bar */
-        .liq-bar{
-          width:100%;height:5px;
-          background:rgba(0,31,63,.06);
-          border-radius:100px;overflow:hidden;
-        }
-        .liq-fill{height:100%;border-radius:100px;}
-
-        .card-pct{font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.5px;}
-
-        /* ── MODAL OVERLAY ── */
-        .modal-overlay{
-          position:fixed;inset:0;
-          background:rgba(248,250,252,.8);
-          backdrop-filter:blur(14px);
-          z-index:200;
-          display:flex;align-items:center;justify-content:center;
-          padding:20px;
-        }
-        .modal-box{
-          background:rgba(255,255,255,.92);
-          backdrop-filter:blur(30px);
-          border:1px solid rgba(0,31,63,.08);
-          border-radius:40% 20% 40% 20% / 20% 40% 20% 40%;
-          padding:48px 40px;
-          width:90%;max-width:380px;
-          text-align:center;
-          box-shadow:0 32px 64px -16px rgba(0,31,63,.14);
-          position:relative;
-        }
-        .modal-close{
-          position:absolute;top:20px;right:20px;
-          background:rgba(0,31,63,.06);border:none;
-          width:34px;height:34px;border-radius:50%;
-          display:flex;align-items:center;justify-content:center;
-          cursor:pointer;color:#64748b;
-          transition:background .2s;
-        }
-        .modal-close:hover{background:rgba(0,31,63,.1);}
-        .modal-icon{
-          font-size:3.5rem;color:var(--accent);
-          margin-bottom:16px;
-          display:flex;justify-content:center;
-        }
-        .modal-name{
-          font-family:'Bebas Neue',sans-serif;
-          font-size:2.8rem;color:#001f3f;
-          margin-bottom:6px;letter-spacing:1px;
-        }
-        .modal-bar{
-          width:100%;height:10px;
-          background:rgba(0,31,63,.06);
-          border-radius:100px;overflow:hidden;
-          margin:20px 0 10px;
-        }
-        .modal-fill{height:100%;border-radius:100px;}
-        .modal-pct{
-          font-size:1.5rem;font-weight:800;
-          color:var(--accent);
-        }
-        .modal-btn{
-          margin-top:28px;padding:12px 32px;
-          border:none;cursor:pointer;
-          font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;
-          color:#fff;background:#001f3f;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          transition:all .45s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .modal-btn:hover{border-radius:50%;background:#0ea5e9;box-shadow:0 8px 20px rgba(14,165,233,.3);}
-
-        @media(max-width:640px){
-          .tech-root{padding:80px 20px;}
-          .tech-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
-          .filter-bar{border-radius:24px;}
-        }
       `}</style>
 
-      <section className="tech-root">
-        {/* BG */}
-        <div className="tech-dotgrid" />
-        <div className="tech-blob tb1" />
-        <div className="tech-blob tb2" />
-        <div className="tech-blob tb3" />
+      <section className="tk-wrap">
 
-        {/* Header */}
-        <motion.div
-          className="tech-header"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="tech-eyebrow"><span /> Skills & Stack</div>
-          <h2 className="tech-title">My <span>Tech</span> Stack</h2>
-          <p className="tech-sub">Crafting digital experiences with modern tools</p>
-        </motion.div>
+        <div className="tk-inner">
 
-        {/* Controls */}
-        <motion.div
-          className="controls"
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.15, duration: 0.55 }}
-        >
-          <div className="filter-bar">
-            {["all", ...techGroups.map(g => g.id)].map(id => (
-              <button
-                key={id}
-                className={`f-pill ${activeGroup === id ? "active" : ""}`}
-                onClick={() => setActiveGroup(id)}
-              >
-                {id === "all" ? "All" : techGroups.find(g => g.id === id)?.title ?? id}
-              </button>
-            ))}
+          {/* HEADER */}
+
+          <div className="tk-head">
+
+            <p className="tk-eyebrow">
+              Modern Stack
+            </p>
+
+            <h2 className="tk-title">
+              Technology <span>Stack</span>
+            </h2>
+
+            <p className="tk-desc">
+              Carefully selected technologies focused
+              on performance, scalability, and
+              premium digital experiences.
+            </p>
+
           </div>
-          <input
-            className="tech-search"
-            placeholder="Search technology..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </motion.div>
 
-        {/* Grid */}
-        <div className="tech-grid">
-          <AnimatePresence mode="popLayout">
-            {filtered.map(item => (
-              <TechCard key={item.name} item={item} onClick={setSelected} />
-            ))}
-          </AnimatePresence>
+          {/* GROUPS */}
+
+          {techGroups.map((group) => (
+
+            <div
+              key={group.id}
+              className="tk-group"
+            >
+
+              <div className="tk-group-top">
+
+                <span className="tk-dot"/>
+
+                <h3>{group.title}</h3>
+
+              </div>
+
+              <div className="tk-grid">
+
+                {group.items.map((item) => (
+
+                  <TechCard
+                    key={item.name}
+                    item={item}
+                    onClick={setSelected}
+                  />
+
+                ))}
+
+              </div>
+
+            </div>
+
+          ))}
+
         </div>
+
       </section>
 
-      {/* Modal */}
+      {/* MODAL */}
+
       <AnimatePresence>
+
         {selected && (
+
           <motion.div
-            className="modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="tk-overlay"
+
+            initial={{
+              opacity: 0,
+            }}
+
+            animate={{
+              opacity: 1,
+            }}
+
+            exit={{
+              opacity: 0,
+            }}
+
             onClick={() => setSelected(null)}
           >
+
             <motion.div
-              className="modal-box"
-              style={{ "--accent": selected.color } as React.CSSProperties}
-              initial={{ scale: 0.88, y: 24, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.88, y: 24, opacity: 0 }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              onClick={e => e.stopPropagation()}
+              className="tk-modal"
+
+              initial={{
+                opacity: 0,
+                scale: 0.92,
+                y: 20,
+              }}
+
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+              }}
+
+              exit={{
+                opacity: 0,
+                scale: 0.92,
+                y: 20,
+              }}
+
+              transition={{
+                duration: 0.35,
+                ease: [0.22,1,0.36,1],
+              }}
+
+              onClick={(e) =>
+                e.stopPropagation()
+              }
             >
-              <button className="modal-close" onClick={() => setSelected(null)}>
-                <X size={16} />
+
+              <button
+                className="tk-close"
+                onClick={() => setSelected(null)}
+              >
+                ✕
               </button>
 
-              <div className="modal-icon">{selected.icon}</div>
-              <div className="modal-name">{selected.name}</div>
-              <p style={{ fontSize: ".85rem", color: "#94a3b8", fontWeight: 600 }}>
-                {techGroups.find(g => g.id === selected.group)?.title}
+              <div
+                className="tk-modal-icon"
+                style={{
+                  color: selected.color,
+                }}
+              >
+                {selected.icon}
+              </div>
+
+              <h2>{selected.name}</h2>
+
+              <div className="tk-modal-bar">
+
+                <motion.div
+                  className="tk-modal-fill"
+
+                  initial={{
+                    width: 0,
+                  }}
+
+                  animate={{
+                    width: `${selected.level}%`,
+                  }}
+
+                  transition={{
+                    duration: 1,
+                  }}
+
+                  style={{
+                    background: selected.color,
+                  }}
+                />
+
+              </div>
+
+              <p>
+                {selected.level}% Proficiency
               </p>
 
-              <div className="modal-bar">
-                <motion.div
-                  className="modal-fill"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${selected.level}%` }}
-                  transition={{ duration: 1.1, ease: "circOut" }}
-                  style={{ background: `linear-gradient(90deg, ${selected.color}99, ${selected.color})` }}
-                />
-              </div>
-              <div className="modal-pct">{selected.level}% Proficiency</div>
-
-              <button className="modal-btn" onClick={() => setSelected(null)}>
-                Close
-              </button>
             </motion.div>
+
           </motion.div>
+
         )}
+
       </AnimatePresence>
+
     </>
   );
 }

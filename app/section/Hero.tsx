@@ -1,492 +1,576 @@
 "use client";
 
-import React, { useRef } from "react";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  Variants // 1. Add this import
-} from "framer-motion";
-import { ArrowUpRight, Download, Sparkles, Globe, Smartphone, Zap } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
-/* ── MAGNETIC BUTTON ── */
-const MagneticButton = ({
-  children,
-  primary = false,
-}: {
-  children: React.ReactNode;
-  primary?: boolean;
-}) => {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 18 });
-  const sy = useSpring(y, { stiffness: 200, damping: 18 });
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-  return (
-    <motion.button
-      onMouseMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        x.set((e.clientX - (r.left + r.width / 2)) * 0.35);
-        y.set((e.clientY - (r.top + r.height / 2)) * 0.35);
-      }}
-      onMouseLeave={() => { x.set(0); y.set(0); }}
-      whileTap={{ scale: 0.94 }}
-      className={primary ? "btn-primary" : "btn-secondary"}
-    >
-      <motion.span style={{ x: sx, y: sy }} className="btn-inner">
-        {children}
-      </motion.span>
-    </motion.button>
-  );
-};
+  /* ── SPLASH ──────────────────────────────────────────────────────────── */
+  .sp-wrap {
+    position: fixed; inset: 0; z-index: 400;
+    background: #000;
+    display: flex; align-items: center; justify-content: center;
+    clip-path: inset(0 0 0% 0);
+    transition: clip-path 1.15s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  .sp-wrap.gone { clip-path: inset(0 0 100% 0); pointer-events: none; }
 
-const handleDownload = () => {
-  const link = document.createElement("a");
-  link.href = "/Aniket_Jamunde_CV.pdf";
-  link.download = "Aniket_Jamunde_CV.pdf";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+  .sp-inner { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
 
-/* ── ANIMATED COUNTER ── */
-function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const [val, setVal] = React.useState(0);
-  React.useEffect(() => {
-    let v = 0;
-    const t = setInterval(() => {
-      v += Math.ceil(to / 45);
-      if (v >= to) { setVal(to); clearInterval(t); }
-      else setVal(v);
-    }, 28);
-    return () => clearInterval(t);
-  }, [to]);
-  return <>{val}{suffix}</>;
-}
+  /* Split word splash animation */
+  .sp-word {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif; font-weight: 600;
+    font-size: clamp(2.6rem, 7.5vw, 6.4rem);
+    color: #fff; letter-spacing: -0.04em; line-height: 1.04;
+    opacity: 0; transform: translateY(48px) rotateX(-25deg);
+    transform-origin: 50% 100%;
+    transition: opacity 0.82s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.82s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sp-word.show { opacity: 1; transform: translateY(0) rotateX(0deg); }
+  .sp-headline-row { display: flex; gap: 0.3em; perspective: 600px; }
 
-/* ── TECH PILL ── */
-const TechPill = ({ Icon, label }: { Icon: React.ElementType; label: string }) => (
-  <motion.div
-    whileHover={{ y: -3, background: "rgba(14,165,233,0.08)" }}
-    className="tech-pill"
-  >
-    <Icon size={14} strokeWidth={2.5} />
-    <span>{label}</span>
-  </motion.div>
-);
+  .sp-line {
+    width: 0; height: 1.5px;
+    background: linear-gradient(90deg,
+      transparent 0%, rgba(255,255,255,0.75) 40%,
+      rgba(255,255,255,0.75) 60%, transparent 100%
+    );
+    border-radius: 2px; opacity: 0;
+    transition: width 1.4s cubic-bezier(0.25, 1, 0.5, 1) 0.48s, opacity 0.3s ease 0.48s;
+  }
+  .sp-line.show { width: 220px; opacity: 1; }
 
-/* ══════════════════════════════════
-   HERO
-══════════════════════════════════ */
+  .sp-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.62rem, 1.15vw, 0.76rem); font-weight: 400;
+    color: rgba(255,255,255,0.28); letter-spacing: 0.32em; text-transform: uppercase;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.72s ease 0.8s, transform 0.72s ease 0.8s;
+  }
+  .sp-sub.show { opacity: 1; transform: translateY(0); }
+
+  /* Splash particles */
+  .sp-particle {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    animation: spPart var(--d) cubic-bezier(.2,.8,.3,1) var(--delay) both;
+    opacity: 0;
+  }
+  @keyframes spPart {
+    0%   { opacity: 0; transform: translate(0,0) scale(0); }
+    30%  { opacity: .8; }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.3); }
+  }
+
+  /* ── HERO ─────────────────────────────────────────────────────────────── */
+  .hr-wrap {
+    position: relative; min-height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+
+  .hr-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0;
+    transition: opacity 2.2s ease; will-change: opacity;
+  }
+  .hr-video.show { opacity: 1; }
+
+  .hr-overlay {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 75% 55% at 50% 45%, rgba(1,3,9,0.35) 0%, transparent 68%),
+      linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.08) 60%, rgba(0,0,0,0.80) 100%),
+      linear-gradient(to right,  rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 22%, transparent 42%),
+      linear-gradient(to left,   rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 22%, transparent 42%);
+  }
+
+  .hr-grain {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    animation: hrGrain 0.26s steps(1) infinite;
+  }
+  @keyframes hrGrain {
+    0%   { background-position:   0px   0px; }
+    25%  { background-position: -30px  12px; }
+    50%  { background-position:  14px -22px; }
+    75%  { background-position: -18px  28px; }
+    100% { background-position:   0px   0px; }
+  }
+
+  /* ── CONTENT ──────────────────────────────────────────────────────────── */
+  .hr-content {
+    position: relative; z-index: 3; width: 100%;
+    max-width: 1080px; padding: clamp(1.5rem, 4vw, 3rem);
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; margin-top: -2rem;
+  }
+
+  /* ── BADGE — liquid chrome pill with glitch ──────────────────────────── */
+  .hr-badge {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 0.62rem;
+    border-radius: 999px;
+    padding: 0.46rem 1.35rem 0.46rem 0.92rem;
+    background: linear-gradient(180deg, rgba(7,18,40,0.56) 0%, rgba(3,8,19,0.13) 100%);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    color: rgba(255,255,255,0.72);
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.7rem, 1vw, 0.82rem); font-weight: 400; letter-spacing: 0.015em;
+    margin-bottom: clamp(1.5rem, 3vw, 2.2rem);
+    border: 1px solid transparent; cursor: default;
+    opacity: 0; transform: translateY(14px) scale(0.92);
+    transition: opacity 0.78s ease, transform 0.78s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease, color 0.3s ease;
+    animation: hrBadgeGlitch 6s ease-in-out infinite;
+  }
+  .hr-badge.show { opacity: 1; transform: translateY(0) scale(1); }
+
+  @keyframes hrBadgeGlitch {
+    0%,89%,100% { transform: translateY(0) scale(1); clip-path: none; }
+    90%  { transform: translateX(2px) skewX(-4deg) scale(1); opacity: .9; }
+    91%  { transform: translateX(-2px) scale(1); clip-path: inset(0 0 60% 0); }
+    92%  { transform: translateX(1px) skewX(3deg) scale(1); clip-path: none; }
+    93%  { transform: none; opacity: 1; }
+    94%  { transform: translateX(-1px) scale(1); opacity: .88; }
+    95%  { transform: none; opacity: 1; }
+  }
+
+  .hr-badge::before {
+    content: ''; position: absolute; inset: -1px; border-radius: 999px; padding: 1.5px;
+    background: linear-gradient(135deg,
+      rgba(255,255,255,0.70)  0%,
+      rgba(40,110,250,0.80)  25%,
+      rgba(10,30,80,0.18)    50%,
+      rgba(45,120,255,0.90)  75%,
+      rgba(255,255,255,0.60) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none; transition: background 0.4s ease;
+  }
+  .hr-badge::after {
+    content: ''; position: absolute; inset: 0; border-radius: 999px;
+    background: radial-gradient(circle at 50% 120%, rgba(45,130,255,0.28) 0%, transparent 68%);
+    opacity: 0.38; pointer-events: none; transition: opacity 0.4s ease;
+  }
+  .hr-badge:hover {
+    color: rgba(255,255,255,0.94);
+    box-shadow: inset 0 0 18px rgba(45,125,255,0.55), 0 0 28px rgba(24,88,238,0.30), 0 8px 28px rgba(0,0,0,0.40);
+  }
+  .hr-badge:hover::before {
+    background: linear-gradient(225deg,
+      rgba(255,255,255,0.95)  0%, rgba(65,145,255,1.00) 30%,
+      rgba(15,45,120,0.38)   50%, rgba(90,170,255,1.00) 80%,
+      rgba(255,255,255,0.90) 100%
+    );
+  }
+  .hr-badge:hover::after { opacity: 0.58; }
+
+  .hr-badge-dot {
+    position: relative; z-index: 1;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 10px rgba(255,255,255,1);
+    flex-shrink: 0; opacity: 0; transform: translateX(-6px) scale(0);
+    transition: opacity 0.5s ease 0.15s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+    animation: dotPulse 2.4s ease-in-out infinite 1s;
+  }
+  .hr-badge.show .hr-badge-dot { opacity: 1; transform: translateX(0) scale(1); }
+  @keyframes dotPulse {
+    0%,100% { box-shadow: 0 0 10px rgba(255,255,255,.9), 0 0 0 0 rgba(255,255,255,.4); }
+    50%     { box-shadow: 0 0 16px rgba(255,255,255,1), 0 0 0 5px rgba(255,255,255,0); }
+  }
+  .hr-badge-text { position: relative; z-index: 1; }
+
+  /* ── HEADLINE — split-word entrance ─────────────────────────────────── */
+  .hr-title-wrap {
+    perspective: 800px;
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 0.2em 0.28em;
+    max-width: 900px;
+    margin-bottom: clamp(1.6rem, 3vw, 2.2rem);
+  }
+
+  .hr-title-word {
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    font-size: clamp(2.4rem, 6.4vw, 5.8rem);
+    color: #fff; letter-spacing: -0.02em; line-height: 1.09;
+    text-shadow: 0 2px 52px rgba(0,0,0,0.5);
+    display: inline-block;
+    opacity: 0; transform: translateY(44px) rotateX(-20deg);
+    transform-origin: 50% 100%;
+    transition: opacity 0.82s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.82s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hr-title-word.show { opacity: 1; transform: translateY(0) rotateX(0deg); }
+
+  /* ── DESCRIPTION ─────────────────────────────────────────────────────── */
+  .hr-desc-wrap {
+    max-width: 820px;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .hr-desc-wrap.show { opacity: 1; transform: translateY(0); }
+
+  .hr-desc {
+    font-family: 'DM Sans', sans-serif; font-weight: 400;
+    font-size: clamp(0.9rem, 1.32vw, 1.08rem);
+    color: rgba(255,255,255,0.70); line-height: 1.7;
+  }
+
+  /* ── BUTTONS — magnetic liquid chrome ───────────────────────────────── */
+  .hr-btns {
+    display: flex; flex-wrap: wrap; gap: 1.4rem; justify-content: center;
+    margin-top: clamp(2rem, 4vw, 2.8rem);
+    opacity: 0; transform: translateY(28px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .hr-btns.show { opacity: 1; transform: translateY(0); }
+
+  .hr-btn {
+    position: relative;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    font-size: clamp(0.84rem, 1.1vw, 0.95rem);
+    padding: 0.95rem 2.6rem; border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.5rem; cursor: pointer; overflow: hidden;
+    color: #fff;
+    background: linear-gradient(180deg, rgba(7,18,40,0.56) 0%, rgba(3,8,19,0.13) 100%);
+    border: 1px solid transparent;
+    transition:
+      transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+      box-shadow 0.4s ease,
+      color 0.3s ease;
+  }
+  .hr-btn-inner {
+    position: relative; z-index: 1;
+    display: block; pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Ripple on click */
+  .hr-btn-ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transform: scale(0); pointer-events: none;
+    animation: btnRipple 0.55s ease-out forwards;
+  }
+  @keyframes btnRipple {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  .hr-btn::before {
+    content: ''; position: absolute; inset: -1px;
+    border-radius: 13px; padding: 1.5px;
+    background: linear-gradient(135deg,
+      rgba(255,255,255,0.70)  0%,
+      rgba(40,110,250,0.80)  25%,
+      rgba(10,30,80,0.18)    50%,
+      rgba(45,120,255,0.90)  75%,
+      rgba(255,255,255,0.60) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none; transition: background 0.4s ease;
+  }
+  .hr-btn::after {
+    content: ''; position: absolute; inset: 0; border-radius: 12px;
+    background: radial-gradient(circle at 50% 120%, rgba(45,130,255,0.28) 0%, transparent 68%);
+    opacity: 0.38; pointer-events: none; transition: opacity 0.4s ease;
+  }
+  .hr-btn:hover {
+    color: rgba(255,255,255,0.96);
+    box-shadow:
+      inset 0 0 18px rgba(45,125,255,0.55),
+      0 0 28px rgba(24,88,238,0.30),
+      0 8px 28px rgba(0,0,0,0.40);
+  }
+  .hr-btn:hover::before {
+    background: linear-gradient(225deg,
+      rgba(255,255,255,0.95)  0%,
+      rgba(65,145,255,1.00)  30%,
+      rgba(15,45,120,0.38)   50%,
+      rgba(90,170,255,1.00)  80%,
+      rgba(255,255,255,0.90) 100%
+    );
+  }
+  .hr-btn:hover::after { opacity: 0.58; }
+  .hr-btn:active { transform: translateY(-1px) scale(0.97) !important; }
+
+  .hr-btn.secondary::before {
+    background: linear-gradient(135deg,
+      rgba(255,255,255,0.38)  0%,
+      rgba(35,85,185,0.48)   30%,
+      rgba(5,15,40,0.10)     60%,
+      rgba(35,90,200,0.58)  100%
+    );
+  }
+  .hr-btn.secondary:hover::before {
+    background: linear-gradient(225deg,
+      rgba(255,255,255,0.78)  0%,
+      rgba(55,120,240,0.90)  30%,
+      rgba(10,30,90,0.28)    50%,
+      rgba(70,140,255,0.95)  80%,
+      rgba(255,255,255,0.72) 100%
+    );
+  }
+
+  /* ── SCROLL HINT ──────────────────────────────────────────────────────── */
+  .hr-scroll {
+    position: absolute; bottom: clamp(1.6rem, 3.5vh, 2.8rem); left: 50%;
+    transform: translateX(-50%); z-index: 3;
+    display: flex; align-items: center; gap: 1.3rem;
+    color: rgba(255,255,255,0.28);
+    font-family: 'DM Sans', sans-serif; font-size: 0.6rem; font-weight: 400;
+    letter-spacing: 0.12rem; white-space: nowrap;
+    opacity: 0; transition: opacity 1.1s ease;
+  }
+  .hr-scroll.show { opacity: 1; }
+  .hr-scroll-line { width: 56px; height: 1px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+
+  .hr-mouse {
+    width: 16px; height: 23px;
+    border: 1.5px solid rgba(255,255,255,0.24);
+    border-radius: 20px;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-top: 5px; flex-shrink: 0;
+  }
+  .hr-mouse-dot {
+    width: 2px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.55);
+    animation: hrMouseDot 2s ease-in-out infinite;
+  }
+  @keyframes hrMouseDot {
+    0%   { transform: translateY(0);   opacity: 1; }
+    70%  { transform: translateY(8px); opacity: 0; }
+    71%  { transform: translateY(0);   opacity: 0; }
+    100% { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* ── RESPONSIVE ───────────────────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .hr-btns {
+      flex-direction: column; align-items: stretch;
+      width: 100%; max-width: 280px; margin-inline: auto; gap: 1rem;
+    }
+    .hr-btn { padding: 0.9rem 1.6rem; }
+    .hr-scroll-line { width: 32px; }
+    .hr-scroll { gap: 0.85rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+`;
+
+/* ── Timing constants (ms) ───────────────────────────────────────────────── */
+const T = {
+  SPLASH_TEXT : 160,
+  SPLASH_LINE : 620,
+  SPLASH_SUB  : 920,
+  SPLASH_UP   : 2850,
+  HERO        : 3340,
+} as const;
+
+const HEADLINE_WORDS = ["The " , "Digital ", "Solution ", "You ", "Need"];
+
 export default function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const smx = useSpring(mx, { stiffness: 35, damping: 22 });
-  const smy = useSpring(my, { stiffness: 35, damping: 22 });
+  const [splashWords, setSplashWords] = useState<boolean[]>([false, false, false, false]);
+  const [splashLine,  setSplashLine]  = useState(false);
+  const [splashSub,   setSplashSub]   = useState(false);
+  const [splashGone,  setSplashGone]  = useState(false);
+  const [videoShow,   setVideoShow]   = useState(false);
+  const [badge,       setBadge]       = useState(false);
+  const [titleWords,  setTitleWords]  = useState<boolean[]>(HEADLINE_WORDS.map(() => false));
+  const [desc,        setDesc]        = useState(false);
+  const [btns,        setBtns]        = useState(false);
+  const [scroll,      setScroll]      = useState(false);
 
-  const bx  = useTransform(smx, [-500, 500], [-40, 40]);
-  const by  = useTransform(smy, [-500, 500], [-40, 40]);
-  const ry  = useTransform(smx, [-500, 500], [-3, 3]);
-  const rx  = useTransform(smy, [-500, 500], [2, -2]);
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const wrapRef   = useRef<HTMLDivElement>(null);
+  const btn1Ref   = useRef<HTMLAnchorElement>(null);
+  const btn2Ref   = useRef<HTMLAnchorElement>(null);
 
-  const stagger = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.1 } },
-  };
-const fadeUp: Variants = { // 2. Apply the type here
-  hidden: { opacity: 0, y: 28 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.7, 
-      ease: [0.16, 1, 0.3, 1] 
-    } 
-  },
-};
+  /* ── Sequence ── */
+  useEffect(() => {
+    const at = (fn: () => void, ms: number) => setTimeout(fn, ms);
+
+    // Splash words stagger
+    const splashWordIds = ["Bring","Ideas","to","Reality..."].map((_, i) =>
+      at(() => setSplashWords(prev => { const next=[...prev]; next[i]=true; return next; }),
+        T.SPLASH_TEXT + i * 110)
+    );
+
+    const ids = [
+      at(() => setSplashLine(true),  T.SPLASH_LINE),
+      at(() => setSplashSub(true),   T.SPLASH_SUB),
+      at(() => setSplashGone(true),  T.SPLASH_UP),
+      at(() => setVideoShow(true),   T.SPLASH_UP + 55),
+      at(() => setBadge(true),       T.HERO),
+      // stagger each headline word
+      ...HEADLINE_WORDS.map((_, i) =>
+        at(() => setTitleWords(prev => { const next=[...prev]; next[i]=true; return next; }),
+          T.HERO + 145 + i * 110)
+      ),
+      at(() => setDesc(true),        T.HERO + 145 + HEADLINE_WORDS.length * 110 + 60),
+      at(() => setBtns(true),        T.HERO + 145 + HEADLINE_WORDS.length * 110 + 200),
+      at(() => setScroll(true),      T.HERO + 670),
+    ];
+    return () => [...splashWordIds, ...ids].forEach(clearTimeout);
+  }, []);
+
+  /* ── Parallax video on mouse move ── */
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const vid  = videoRef.current;
+    if (!wrap || !vid) return;
+    const onMove = (e: MouseEvent) => {
+      const { innerWidth: w, innerHeight: h } = window;
+      const dx = (e.clientX / w - 0.5) * 14;
+      const dy = (e.clientY / h - 0.5) * 10;
+      vid.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
+    };
+    const onLeave = () => { vid.style.transform = "translate(0,0) scale(1.04)"; };
+    wrap.addEventListener("mousemove", onMove);
+    wrap.addEventListener("mouseleave", onLeave);
+    return () => { wrap.removeEventListener("mousemove", onMove); wrap.removeEventListener("mouseleave", onLeave); };
+  }, []);
+
+  /* ── Magnetic buttons ── */
+  const makeMagnetic = useCallback((ref: React.RefObject<HTMLAnchorElement>) => {
+    const btn = ref.current;
+    if (!btn) return;
+    const inner = btn.querySelector<HTMLElement>(".hr-btn-inner");
+    const onMove = (e: MouseEvent) => {
+      const r = btn.getBoundingClientRect();
+      const dx = (e.clientX - r.left - r.width  / 2) * 0.32;
+      const dy = (e.clientY - r.top  - r.height / 2) * 0.32;
+      btn.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
+      if (inner) inner.style.transform = `translate(${dx * 0.55}px,${dy * 0.55}px)`;
+    };
+    const onLeave = () => {
+      btn.style.transform = "";
+      if (inner) inner.style.transform = "";
+    };
+    const onClick = (e: MouseEvent) => {
+      const r = btn.getBoundingClientRect();
+      const ripple = document.createElement("span");
+      ripple.className = "hr-btn-ripple";
+      const size = Math.max(r.width, r.height);
+      ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px`;
+      btn.appendChild(ripple);
+      ripple.addEventListener("animationend", () => ripple.remove());
+    };
+    btn.addEventListener("mousemove", onMove);
+    btn.addEventListener("mouseleave", onLeave);
+    btn.addEventListener("click", onClick);
+    return () => {
+      btn.removeEventListener("mousemove", onMove);
+      btn.removeEventListener("mouseleave", onLeave);
+      btn.removeEventListener("click", onClick);
+    };
+  }, []);
+
+  useEffect(() => { const c1 = makeMagnetic(btn1Ref); const c2 = makeMagnetic(btn2Ref); return () => { c1?.(); c2?.(); }; }, [btns, makeMagnetic]);
+
+  const SPLASH_WORDS_TEXT = ["Bring","Ideas","to","Reality..."];
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
 
-        .hero {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          min-height: 100vh;
-          background: #f8fafc;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 8vw;
-          overflow: hidden;
-          position: relative;
-          padding-top: 1rem;
-        }
-
-        /* ── DOT GRID ── */
-        .hero::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background-image: radial-gradient(rgba(0,31,63,0.07) 1px, transparent 1px);
-          background-size: 38px 38px;
-          mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black, transparent);
-          z-index: 0;
-        }
-
-        /* ── LIQUID BLOBS ── */
-        .blobs {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 0;
-        }
-        .blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(90px);
-          opacity: 0.18;
-          animation: drift ease-in-out infinite alternate;
-        }
-        .blob-1 {
-          width: 480px; height: 480px;
-          background: #0ea5e9;
-          top: -10%; left: -8%;
-          animation-duration: 18s;
-        }
-        .blob-2 {
-          width: 380px; height: 380px;
-          background: #001f3f;
-          bottom: -5%; right: -6%;
-          animation-duration: 22s;
-          animation-delay: -7s;
-        }
-        .blob-3 {
-          width: 260px; height: 260px;
-          background: #7dd3fc;
-          top: 55%; left: 45%;
-          animation-duration: 14s;
-          animation-delay: -4s;
-        }
-        @keyframes drift {
-          from { transform: translate(0, 0) scale(1); }
-          to   { transform: translate(60px, 50px) scale(1.15); }
-        }
-
-        /* ── LAYOUT ── */
-        .hero-grid {
-          position: relative;
-          z-index: 2;
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 72px;
-          align-items: center;
-          width: 100%;
-          max-width: 1300px;
-        }
-
-        /* ── BADGE ── */
-        .badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          background: rgba(0,31,63,0.04);
-          border: 1px solid rgba(0,31,63,0.09);
-          padding: 7px 15px;
-          border-radius: 100px;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          text-transform: uppercase;
-          color: #001f3f;
-          margin-bottom: 28px;
-        }
-        .badge svg { color: #0ea5e9; }
-
-        /* ── HEADING ── */
-        .hero-h1 {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(5rem, 10vw, 9rem);
-          line-height: 0.82;
-          margin-bottom: 26px;
-          color: #010f1e;
-          letter-spacing: 1px;
-        }
-        .hero-h1 .gradient-text {
-          background: linear-gradient(130deg, #001f3f 0%, #0ea5e9 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .hero-h1 .dim { opacity: 0.3; }
-
-        /* ── PARAGRAPH ── */
-        .hero-p {
-          color: #475569;
-          font-size: 1.1rem;
-          line-height: 1.75;
-          max-width: 500px;
-          margin-bottom: 44px;
-        }
-        .hero-p strong { color: #001f3f; font-weight: 700; }
-
-        /* ── BUTTONS ── */
-        .btn-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 52px; }
-
-        .btn-primary {
-          background: #001f3f;
-          color: #fff;
-          padding: 16px 36px;
-          border: none;
-          border-radius: 40% 60% 60% 40% / 40% 40% 60% 60%;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-weight: 800;
-          font-size: 0.9rem;
-          cursor: pointer;
-          box-shadow: 0 14px 32px rgba(0,31,63,0.22);
-          transition: border-radius 0.5s cubic-bezier(0.175,0.885,0.32,1.275), box-shadow 0.3s;
-          overflow: hidden;
-        }
-        .btn-primary:hover {
-          border-radius: 50%;
-          box-shadow: 0 20px 44px rgba(14,165,233,0.3);
-          background: linear-gradient(135deg, #001f3f, #0ea5e9);
-        }
-
-        .btn-secondary {
-          background: rgba(255,255,255,0.75);
-          color: #001f3f;
-          padding: 16px 36px;
-          border: 1px solid rgba(0,31,63,0.12);
-          border-radius: 60% 40% 40% 60% / 60% 60% 40% 40%;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-weight: 700;
-          font-size: 0.9rem;
-          cursor: pointer;
-          backdrop-filter: blur(12px);
-          transition: border-radius 0.5s ease, background 0.3s;
-        }
-        .btn-secondary:hover {
-          border-radius: 16px;
-          background: #fff;
-        }
-
-        .btn-inner {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          position: relative;
-          z-index: 2;
-        }
-
-        /* ── TECH PILLS ── */
-        .tech-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .tech-pill {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          padding: 8px 14px;
-          background: rgba(255,255,255,0.6);
-          border: 1px solid rgba(0,31,63,0.08);
-          border-radius: 100px;
-          backdrop-filter: blur(10px);
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.8px;
-          text-transform: uppercase;
-          color: #64748b;
-          transition: all 0.3s ease;
-          cursor: default;
-        }
-
-        /* ── STATS CARD ── */
-        .stats-col {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          min-width: 200px;
-        }
-        .stat-card {
-          background: rgba(255,255,255,0.55);
-          backdrop-filter: blur(24px);
-          border: 1px solid rgba(0,31,63,0.07);
-          border-radius: 28px 12px 28px 12px;
-          padding: 28px 28px;
-          transition: all 0.4s ease;
-          cursor: default;
-        }
-        .stat-card:hover {
-          border-radius: 12px 28px 12px 28px;
-          background: rgba(255,255,255,0.85);
-          transform: translateY(-4px);
-          box-shadow: 0 16px 40px rgba(0,31,63,0.08);
-        }
-        .stat-num {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 3rem;
-          line-height: 1;
-          background: linear-gradient(135deg, #001f3f, #0ea5e9);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 4px;
-        }
-        .stat-label {
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.8px;
-          text-transform: uppercase;
-          color: #94a3b8;
-        }
-
-        /* ── SCROLL INDICATOR ── */
-        .scroll-line {
-          position: absolute;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-          z-index: 2;
-        }
-        .scroll-text {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          color: rgba(0,31,63,0.3);
-        }
-        .scroll-bar {
-          width: 1px;
-          height: 48px;
-          background: linear-gradient(to bottom, rgba(0,31,63,0.3), transparent);
-        }
-
-        @media (max-width: 900px) {
-          .hero-grid { grid-template-columns: 1fr; }
-          .stats-col { flex-direction: row; justify-content: center; }
-          .hero-p { max-width: 100%; }
-          .btn-row { justify-content: center; }
-          .tech-row { justify-content: center; }
-          .badge { margin: 0 auto 28px; }
-        }
-      `}</style>
-
-      <section
-        ref={ref}
-        className="hero"
-        onMouseMove={(e) => {
-          const r = ref.current?.getBoundingClientRect();
-          if (!r) return;
-          mx.set(e.clientX - r.left - r.width / 2);
-          my.set(e.clientY - r.top - r.height / 2);
-        }}
-      >
-        {/* Blobs */}
-        <div className="blobs">
-          <motion.div style={{ x: bx, y: by }} className="blob blob-1" />
-          <motion.div style={{ x: useTransform(by, v => -v * 0.6), y: useTransform(bx, v => v * 0.6) }} className="blob blob-2" />
-          <motion.div style={{ x: useTransform(bx, v => v * 0.4), y: by }} className="blob blob-3" />
-        </div>
-
-        <div className="hero-grid">
-          {/* ── LEFT CONTENT ── */}
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            animate="show"
-            style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}
-          >
-            {/* Badge */}
-            <motion.div variants={fadeUp} className="badge">
-              <Sparkles size={13} />
-              Flutter · Full-Stack Developer 
-            </motion.div>
-
-            {/* Heading */}
-            <motion.h1 variants={fadeUp} className="hero-h1">
-              I AM <span className="gradient-text">ANIKET</span>.<br />
-              <span className="dim">FULL-STACK</span><br />
-              <span className="dim">DEV.</span>
-            </motion.h1>
-
-            {/* Description */}
-            <motion.p variants={fadeUp} className="hero-p">
-              I design and develop <strong>visually stunning, high-performance apps</strong> that
-              deliver seamless user experiences across mobile and web platforms.
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div variants={fadeUp} className="btn-row">
-              <MagneticButton primary>
-                Start a Project <ArrowUpRight size={18} />
-              </MagneticButton>
-           <a 
-  href="/Aniket_Jamunde_CV.pdf"
-  download="Aniket_Jamunde_CV.pdf"
-  style={{ textDecoration: 'none' }}
->
-  <MagneticButton>
-    Download CV <Download size={18} />
-  </MagneticButton>
-</a>
-            </motion.div>
-
-            {/* Tech Pills */}
-            <motion.div variants={fadeUp} className="tech-row">
-              <TechPill Icon={Globe} label="Next.js" />
-              <TechPill Icon={Smartphone} label="Flutter" />
-              <TechPill Icon={Zap} label="Performance" />
-            </motion.div>
-          </motion.div>
-
-          {/* ── RIGHT: STATS ── */}
-          <motion.div
-            className="stats-col"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {[
-              { num: 1.5, suffix: "+", label: "Years Experience" },
-              { num: 15, suffix: "+", label: "Projects Done" },
-              { num: 10, suffix: "+", label: "Happy Clients" },
-            ].map(({ num, suffix, label }, i) => (
-              <motion.div
-                key={i}
-                className="stat-card"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <div className="stat-num">
-                  <Counter to={num} suffix={suffix} />
-                </div>
-                <div className="stat-label">{label}</div>
-              </motion.div>
+      {/* ── SPLASH ─────────────────────────────────────────────────────── */}
+      <div className={`sp-wrap${splashGone ? " gone" : ""}`} aria-hidden="true">
+        <div className="sp-inner">
+          <div className="sp-headline-row">
+            {SPLASH_WORDS_TEXT.map((word, i) => (
+              <span key={i} className={`sp-word${splashWords[i] ? " show" : ""}`}
+                style={{ transitionDelay: `${i * 0.06}s` }}>
+                {word}
+              </span>
             ))}
-          </motion.div>
+          </div>
+          <div className={`sp-line${splashLine ? " show" : ""}`} />
+          <div className={`sp-sub${splashSub ? " show" : ""}`}>
+            Aniket Jamunde — Portfolio
+          </div>
+        </div>
+      </div>
+
+      {/* ── HERO ───────────────────────────────────────────────────────── */}
+      <div className="hr-wrap" ref={wrapRef}>
+
+        <video
+          ref={videoRef}
+          className={`hr-video${videoShow ? " show" : ""}`}
+          autoPlay muted loop playsInline aria-hidden="true"
+          style={{ transition: "opacity 2.2s ease, transform 0.12s ease" }}
+        >
+          <source src="/bg.mp4" type="video/mp4" />
+        </video>
+
+        <div className="hr-overlay" aria-hidden="true" />
+        <div className="hr-grain"   aria-hidden="true" />
+
+        <main className="hr-content">
+
+          {/* Badge */}
+          <div className={`hr-badge${badge ? " show" : ""}`}>
+            <span className="hr-badge-dot" />
+            <span className="hr-badge-text">Crafting Unique Branding Solutions</span>
+          </div>
+
+          {/* Headline — split words */}
+          <div className="hr-title-wrap" role="heading" aria-level={1}>
+            {HEADLINE_WORDS.map((word, i) => (
+              <span
+                key={i}
+                className={`hr-title-word${titleWords[i] ? " show" : ""}`}
+                style={{ transitionDelay: `${i * 0.06}s` }}
+              >
+                {word}
+              </span>
+            ))}
+          </div>
+
+          {/* Description */}
+          <div className={`hr-desc-wrap${desc ? " show" : ""}`}>
+            <p className="hr-desc">
+              Hi, I&apos;m Aniket Jamunde — a Web Developer and Flutter Developer.
+              I build modern websites, mobile apps, and digital experiences
+              that help businesses grow.
+            </p>
+          </div>
+
+          {/* CTA Buttons — magnetic + ripple */}
+          <div className={`hr-btns${btns ? " show" : ""}`}>
+            <a href="#contact" className="hr-btn" ref={btn1Ref}>
+              <span className="hr-btn-inner">Start Your Project</span>
+            </a>
+            <a href="#projects" className="hr-btn secondary" ref={btn2Ref}>
+              <span className="hr-btn-inner">See Projects</span>
+            </a>
+          </div>
+
+        </main>
+
+        {/* Scroll hint */}
+        <div className={`hr-scroll${scroll ? " show" : ""}`} aria-hidden="true">
+          <span>Scroll Down</span>
+          <div className="hr-scroll-line" />
+          <div className="hr-mouse">
+            <div className="hr-mouse-dot" />
+          </div>
+          <div className="hr-scroll-line" />
+          <span>to see projects</span>
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          className="scroll-line"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-        >
-          <span className="scroll-text">Scroll</span>
-          <motion.div
-            className="scroll-bar"
-            animate={{ scaleY: [1, 0.4, 1], opacity: [0.4, 1, 0.4] }}
-            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          />
-        </motion.div>
-      </section>
+      </div>
     </>
   );
 }

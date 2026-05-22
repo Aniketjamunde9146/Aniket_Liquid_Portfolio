@@ -1,326 +1,546 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Zap, Code, Heart } from "lucide-react";
-import { Variants } from "framer-motion"; // Add this import
+import { useEffect, useRef, useState, useCallback } from "react";
 
-const CORE_VALUES = [
-  { icon: <Zap size={18} />, title: "Performance", desc: "Optimizing every line for speed and scalability." },
-  { icon: <Code size={18} />, title: "Clean Architecture", desc: "Building modular, maintainable systems." },
-  { icon: <Heart size={18} />, title: "Craftsmanship", desc: "Pixel-perfect UI with fluid interactions." },
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+  .ab-wrap {
+    position:relative; background:#000; overflow:hidden;
+    padding:clamp(5rem,10vh,8rem) 0 clamp(5rem,9vh,7rem); isolation:isolate;
+  }
+
+  .ab-grain-a,.ab-grain-b,.ab-grain-c{
+    position:absolute;inset:0;z-index:1;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size:180px 180px;mix-blend-mode:overlay;
+  }
+  .ab-grain-a{opacity:.055;animation:grainA .18s steps(1) infinite}
+  .ab-grain-b{opacity:.030;animation:grainB .22s steps(1) infinite;filter:hue-rotate(40deg)}
+  .ab-grain-c{opacity:.020;animation:grainC .28s steps(1) infinite;filter:hue-rotate(200deg)}
+  @keyframes grainA{0%{background-position:0 0}25%{background-position:-38px 16px}50%{background-position:20px -28px}75%{background-position:-14px 32px}}
+  @keyframes grainB{0%{background-position:12px 6px}33%{background-position:-22px -8px}66%{background-position:30px 18px}}
+  @keyframes grainC{0%{background-position:-6px 22px}50%{background-position:18px -14px}}
+
+  .ab-scan{
+    position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.055) 3px,rgba(0,0,0,0.055) 4px);
+    opacity:.5;
+  }
+
+  .ab-blob-l{
+    position:absolute;z-index:0;pointer-events:none;
+    width:clamp(320px,45vw,600px);height:clamp(320px,45vw,600px);
+    left:-12%;top:10%;border-radius:50%;
+    background:radial-gradient(circle,rgba(30,80,255,.09) 0%,transparent 68%);
+    animation:blobPulse 7s ease-in-out infinite;
+  }
+  .ab-blob-r{
+    position:absolute;z-index:0;pointer-events:none;
+    width:clamp(280px,40vw,520px);height:clamp(280px,40vw,520px);
+    right:-10%;bottom:5%;border-radius:50%;
+    background:radial-gradient(circle,rgba(100,30,255,.07) 0%,transparent 68%);
+    animation:blobPulse 9s ease-in-out infinite reverse;
+  }
+  @keyframes blobPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.7}}
+
+  .ab-topline{
+    position:absolute;top:0;left:0;right:0;height:1px;z-index:3;
+    background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.08) 25%,rgba(80,140,255,.18) 50%,rgba(255,255,255,.08) 75%,transparent 100%);
+  }
+
+  .ab-inner{
+    position:relative;z-index:4;
+    max-width:1200px;margin:0 auto;
+    padding:0 clamp(1.5rem,5vw,3.5rem);
+    display:flex;flex-direction:column;align-items:center;
+  }
+
+  /* ── HEADING ─────────────────────────────────────────────────────────── */
+  .ab-head{text-align:center;max-width:760px;margin-bottom:clamp(2.5rem,5vw,4rem)}
+
+  .ab-eyebrow{
+    font-family:'DM Sans',sans-serif;
+    font-size:clamp(.6rem,.85vw,.7rem);font-weight:400;
+    color:rgba(255,255,255,.22);letter-spacing:.38em;text-transform:uppercase;
+    margin-bottom:.9rem;
+    opacity:0;transform:translateY(10px);
+    transition:opacity .6s ease,transform .6s ease;
+  }
+  .ab-eyebrow.show{opacity:1;transform:none}
+
+  /* Line-wipe title */
+  .ab-title-wrap{position:relative;display:inline-block;margin:0 0 clamp(.9rem,1.8vw,1.3rem)}
+  .ab-title{
+    font-family:'DM Sans',sans-serif;font-weight:700;
+    font-size:clamp(2.4rem,5.5vw,4.8rem);
+    color:#fff;letter-spacing:-.035em;line-height:1.06;
+    margin:0;
+    opacity:0;transform:translateY(26px);
+    transition:opacity .9s ease .1s,transform .9s ease .1s;
+  }
+  .ab-title.show{opacity:1;transform:none}
+  .ab-title-line{
+    position:absolute;bottom:-6px;left:0;height:2px;width:0;
+    background:linear-gradient(90deg,rgba(80,140,255,.85),rgba(160,80,255,.6),transparent);
+    border-radius:2px;
+    transition:width 1.1s cubic-bezier(.25,1,.5,1) .65s;
+  }
+  .ab-title-line.show{width:100%}
+
+  .ab-desc{
+    font-family:'DM Sans',sans-serif;font-weight:400;
+    font-size:clamp(.86rem,1.15vw,1rem);
+    color:rgba(255,255,255,.38);line-height:1.80;
+    opacity:0;transform:translateY(16px);
+    transition:opacity .85s ease .22s,transform .85s ease .22s;
+  }
+  .ab-desc.show{opacity:1;transform:none}
+
+  /* ── DESKTOP ORBIT STAGE ─────────────────────────────────────────────── */
+  .ab-stage{
+    position:relative;
+    width:min(880px,96vw);height:clamp(320px,54vw,520px);
+    margin-bottom:clamp(2rem,4vw,3.5rem);
+    opacity:0;transition:opacity 1s ease .3s;
+  }
+  .ab-stage.show{opacity:1}
+  .ab-orbit{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+
+  .ab-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ab-particle{
+    position:absolute;border-radius:50%;
+    background:rgba(80,140,255,.5);
+    animation:partFloat linear infinite;
+  }
+  @keyframes partFloat{0%,100%{transform:translateY(0) scale(1)}33%{transform:translateY(-18px) scale(1.2)}66%{transform:translateY(-8px) scale(.85)}}
+
+  .ab-illus-wrap{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:clamp(220px,34%,310px);
+    transform-style:preserve-3d;transition:transform .12s ease;cursor:pointer;
+  }
+  .ab-illus{
+    width:100%;display:block;
+    animation:abFloat 5s ease-in-out infinite;
+    filter:drop-shadow(0 22px 55px rgba(70,130,255,.30)) drop-shadow(0 4px 18px rgba(120,80,255,.20));
+    transition:filter .4s ease;
+  }
+  .ab-illus-wrap:hover .ab-illus{
+    filter:drop-shadow(0 28px 70px rgba(70,130,255,.50)) drop-shadow(0 8px 28px rgba(120,80,255,.35));
+  }
+  @keyframes abFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+  /* ── DESKTOP TAGS — pop + bounce ─────────────────────────────────────── */
+  .ab-tag{
+    position:absolute;
+    font-family:'DM Sans',sans-serif;
+    font-size:clamp(.68rem,1vw,.82rem);font-weight:600;
+    color:#fff;white-space:nowrap;
+    padding:.54rem 1.25rem;border-radius:9px;
+    background:rgba(6,12,26,.65);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid transparent;cursor:default;
+    opacity:0;transform:translateX(var(--tx,0)) scale(.85);
+    transition:
+      opacity .6s cubic-bezier(.16,1,.3,1) var(--td,0s),
+      transform .7s cubic-bezier(.34,1.56,.64,1) var(--td,0s),
+      box-shadow .3s ease;
+  }
+  .ab-tag.show{opacity:1;transform:translateX(0) scale(1)}
+  .ab-tag::before{
+    content:'';position:absolute;inset:-1px;border-radius:10px;padding:1.5px;
+    background:linear-gradient(135deg,rgba(255,255,255,.60) 0%,var(--glow-a,rgba(40,110,250,.80)) 25%,rgba(10,30,80,.18) 50%,var(--glow-b,rgba(45,120,255,.90)) 75%,rgba(255,255,255,.50) 100%);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;transition:background .4s ease;
+  }
+  .ab-tag::after{
+    content:'';position:absolute;inset:0;border-radius:10px;
+    background:radial-gradient(circle at 50% 120%,var(--glow-b,rgba(45,120,255,.28)) 0%,transparent 68%);
+    opacity:.38;pointer-events:none;transition:opacity .4s ease;
+  }
+  .ab-tag:hover{box-shadow:inset 0 0 16px var(--glow-b,rgba(45,125,255,.5)),0 0 26px var(--glow-b,rgba(24,88,238,.28)),0 8px 26px rgba(0,0,0,.4)}
+  .ab-tag:hover::before{background:linear-gradient(225deg,rgba(255,255,255,.95) 0%,var(--glow-a,rgba(65,145,255,1)) 30%,rgba(15,45,120,.38) 50%,var(--glow-b,rgba(90,170,255,1)) 80%,rgba(255,255,255,.90) 100%)}
+  .ab-tag:hover::after{opacity:.58}
+
+  .ab-t-uiux      {--glow-a:rgba(255,100,200,.85);--glow-b:rgba(255,80,180,.90);top:16%;left:1%;--tx:-20px;--td:.35s}
+  .ab-t-cloud     {--glow-a:rgba(80,200,255,.85);--glow-b:rgba(60,190,255,.90);top:46%;left:-1%;--tx:-20px;--td:.42s}
+  .ab-t-marketing {--glow-a:rgba(255,180,50,.85);--glow-b:rgba(255,165,30,.90);top:76%;left:2%;--tx:-20px;--td:.50s}
+  .ab-t-web       {--glow-a:rgba(80,255,180,.85);--glow-b:rgba(60,240,160,.90);top:16%;right:1%;--tx:20px;--td:.35s}
+  .ab-t-app       {--glow-a:rgba(140,80,255,.85);--glow-b:rgba(120,60,255,.90);top:46%;right:-1%;--tx:20px;--td:.42s}
+  .ab-t-ai        {--glow-a:rgba(255,120,80,.85);--glow-b:rgba(255,100,60,.90);top:76%;right:2%;--tx:20px;--td:.50s}
+
+  /* ── MOBILE LAYOUT ───────────────────────────────────────────────────── */
+  .ab-mobile-layout{display:none}
+
+  .ab-mobile-illus-wrap{
+    display:flex;justify-content:center;
+    margin-bottom:2rem;
+    opacity:0;transform:translateY(24px) scale(0.95);
+    transition:opacity .85s ease .1s,transform .85s ease .1s;
+  }
+  .ab-mobile-illus-wrap.show{opacity:1;transform:none}
+  .ab-mobile-illus{
+    width:clamp(160px,55vw,240px);display:block;
+    animation:abFloat 5s ease-in-out infinite;
+    filter:drop-shadow(0 18px 40px rgba(70,130,255,.35)) drop-shadow(0 4px 14px rgba(120,80,255,.20));
+  }
+
+  .ab-mobile-tags{
+    display:flex;flex-direction:column;align-items:center;gap:.85rem;
+    margin-bottom:2.4rem;
+  }
+
+  /* Mobile tags — pop + bounce */
+  .ab-mtag{
+    position:relative;
+    font-family:'DM Sans',sans-serif;
+    font-size:.8rem;font-weight:600;
+    color:#fff;white-space:nowrap;
+    padding:.58rem 1.5rem;border-radius:9px;
+    background:rgba(6,12,26,.65);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid transparent;cursor:default;
+    opacity:0;transform:translateY(22px) scale(.88);
+    transition:
+      opacity .55s cubic-bezier(.16,1,.3,1) var(--mt-delay,0s),
+      transform .65s cubic-bezier(.34,1.56,.64,1) var(--mt-delay,0s),
+      box-shadow .3s ease;
+  }
+  .ab-mtag.show{opacity:1;transform:none}
+  .ab-mtag::before{
+    content:'';position:absolute;inset:-1px;border-radius:10px;padding:1.5px;
+    background:linear-gradient(135deg,rgba(255,255,255,.60) 0%,var(--glow-a,rgba(40,110,250,.80)) 25%,rgba(10,30,80,.18) 50%,var(--glow-b,rgba(45,120,255,.90)) 75%,rgba(255,255,255,.50) 100%);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  }
+  .ab-mtag::after{
+    content:'';position:absolute;inset:0;border-radius:10px;
+    background:radial-gradient(circle at 50% 120%,var(--glow-b,rgba(45,120,255,.28)) 0%,transparent 68%);
+    opacity:.38;pointer-events:none;
+  }
+  .ab-mtag:hover{box-shadow:inset 0 0 14px var(--glow-b,rgba(45,125,255,.5)),0 0 20px var(--glow-b,rgba(24,88,238,.25)),0 6px 20px rgba(0,0,0,.4)}
+
+  .ab-mt-uiux      {--glow-a:rgba(255,100,200,.85);--glow-b:rgba(255,80,180,.90);--mt-delay:.20s}
+  .ab-mt-web       {--glow-a:rgba(80,255,180,.85);--glow-b:rgba(60,240,160,.90);--mt-delay:.28s}
+  .ab-mt-app       {--glow-a:rgba(140,80,255,.85);--glow-b:rgba(120,60,255,.90);--mt-delay:.36s}
+  .ab-mt-cloud     {--glow-a:rgba(80,200,255,.85);--glow-b:rgba(60,190,255,.90);--mt-delay:.44s}
+  .ab-mt-marketing {--glow-a:rgba(255,180,50,.85);--glow-b:rgba(255,165,30,.90);--mt-delay:.52s}
+  .ab-mt-ai        {--glow-a:rgba(255,120,80,.85);--glow-b:rgba(255,100,60,.90);--mt-delay:.60s}
+
+  /* ── LANGUAGE PILLS — shimmer ────────────────────────────────────────── */
+  .ab-langs{
+    display:flex;flex-wrap:wrap;gap:.65rem;justify-content:center;
+    max-width:800px;margin-bottom:clamp(2rem,4vw,3rem);
+    opacity:0;transform:translateY(14px);
+    transition:opacity .85s ease .50s,transform .85s ease .50s;
+  }
+  .ab-langs.show{opacity:1;transform:none}
+  .ab-lang{
+    display:inline-flex;align-items:center;gap:.45rem;
+    font-family:'DM Sans',sans-serif;
+    font-size:clamp(.66rem,.95vw,.76rem);font-weight:500;
+    color:rgba(255,255,255,.52);letter-spacing:.03em;
+    padding:.38rem 1rem;border-radius:999px;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.03);
+    position:relative;overflow:hidden;cursor:default;
+    transition:color .3s ease,border-color .3s ease,transform .3s cubic-bezier(.25,1,.5,1);
+  }
+  /* Shimmer sweep */
+  .ab-lang::before{
+    content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+    transition:left .6s ease;
+  }
+  .ab-lang:hover::before{left:170%}
+  .ab-lang:hover{
+    color:rgba(255,255,255,.92);
+    border-color:rgba(255,255,255,.26);
+    transform:translateY(-2px) scale(1.04);
+  }
+  .ab-lang-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+  /* ── BUTTONS ─────────────────────────────────────────────────────────── */
+  .ab-btns{
+    display:flex;flex-wrap:wrap;gap:1.4rem;justify-content:center;
+    opacity:0;transform:translateY(22px);
+    transition:opacity .85s ease .58s,transform .85s ease .58s;
+  }
+  .ab-btns.show{opacity:1;transform:none}
+
+  .ab-btn{
+    position:relative;
+    font-family:'DM Sans',sans-serif;font-weight:500;
+    font-size:clamp(.84rem,1.1vw,.95rem);
+    padding:.65rem 2.6rem;border-radius:12px;
+    text-decoration:none;display:inline-flex;
+    align-items:center;justify-content:center;
+    gap:.5rem;cursor:pointer;overflow:hidden;
+    color:#fff;
+    background:linear-gradient(180deg,rgba(7,18,40,.56) 0%,rgba(3,8,19,.13) 100%);
+    border:1px solid transparent;
+    transition:transform .4s cubic-bezier(.25,1,.5,1),box-shadow .4s ease,color .3s ease;
+  }
+  .ab-btn-inner{position:relative;z-index:1;display:block;pointer-events:none;transition:transform .4s cubic-bezier(.25,1,.5,1)}
+  .ab-btn-ripple{
+    position:absolute;border-radius:50%;
+    background:rgba(255,255,255,.15);
+    transform:scale(0);pointer-events:none;
+    animation:abBtnRipple .55s ease-out forwards;
+  }
+  @keyframes abBtnRipple{to{transform:scale(4);opacity:0}}
+  .ab-btn::before{
+    content:'';position:absolute;inset:-1px;border-radius:13px;padding:1.5px;
+    background:linear-gradient(135deg,rgba(255,255,255,.70) 0%,rgba(40,110,250,.80) 25%,rgba(10,30,80,.18) 50%,rgba(45,120,255,.90) 75%,rgba(255,255,255,.60) 100%);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;transition:background .4s ease;
+  }
+  .ab-btn::after{
+    content:'';position:absolute;inset:0;border-radius:12px;
+    background:radial-gradient(circle at 50% 120%,rgba(45,130,255,.28) 0%,transparent 68%);
+    opacity:.38;pointer-events:none;transition:opacity .4s ease;
+  }
+  .ab-btn:hover{
+    color:rgba(255,255,255,.96);transform:translateY(-3px);
+    box-shadow:inset 0 0 18px rgba(45,125,255,.55),0 0 28px rgba(24,88,238,.30),0 8px 28px rgba(0,0,0,.40);
+  }
+  .ab-btn:hover::before{background:linear-gradient(225deg,rgba(255,255,255,.95) 0%,rgba(65,145,255,1.00) 30%,rgba(15,45,120,.38) 50%,rgba(90,170,255,1.00) 80%,rgba(255,255,255,.90) 100%)}
+  .ab-btn:hover::after{opacity:.58}
+  .ab-btn:active{transform:translateY(-1px) scale(.98) !important}
+  .ab-btn.secondary::before{background:linear-gradient(135deg,rgba(255,255,255,.38) 0%,rgba(35,85,185,.48) 30%,rgba(5,15,40,.10) 60%,rgba(35,90,200,.58) 100%)}
+  .ab-btn.secondary:hover::before{background:linear-gradient(225deg,rgba(255,255,255,.78) 0%,rgba(55,120,240,.90) 30%,rgba(10,30,90,.28) 50%,rgba(70,140,255,.95) 80%,rgba(255,255,255,.72) 100%)}
+
+  /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+  @media(max-width:640px){
+    .ab-stage{display:none}
+    .ab-mobile-layout{display:block}
+    .ab-btns{flex-direction:column;align-items:stretch;max-width:260px;gap:.9rem}
+    .ab-btn{padding:.9rem 1.6rem}
+    .ab-head{margin-bottom:1.8rem}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+`;
+
+function OrbitLines() {
+  return (
+    <svg className="ab-orbit" viewBox="0 0 880 520" fill="none"
+      xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="agL" cx="0%" cy="50%" r="100%">
+          <stop offset="0%" stopColor="rgba(80,140,255,0.18)"/>
+          <stop offset="100%" stopColor="rgba(80,140,255,0)"/>
+        </radialGradient>
+        <radialGradient id="agR" cx="100%" cy="50%" r="100%">
+          <stop offset="0%" stopColor="rgba(140,80,255,0.18)"/>
+          <stop offset="100%" stopColor="rgba(140,80,255,0)"/>
+        </radialGradient>
+      </defs>
+      <path d="M 190 85 Q 100 260 190 435" stroke="url(#agL)" strokeWidth="1.2" strokeDasharray="6 8"/>
+      <path d="M 690 85 Q 780 260 690 435" stroke="url(#agR)" strokeWidth="1.2" strokeDasharray="6 8"/>
+      <line x1="252" y1="99"  x2="375" y2="195" stroke="rgba(255,255,255,.05)" strokeWidth=".8"/>
+      <line x1="230" y1="260" x2="368" y2="260" stroke="rgba(255,255,255,.05)" strokeWidth=".8"/>
+      <line x1="254" y1="421" x2="376" y2="325" stroke="rgba(255,255,255,.05)" strokeWidth=".8"/>
+      <line x1="628" y1="99"  x2="505" y2="195" stroke="rgba(255,255,255,.05)" strokeWidth=".8"/>
+      <line x1="650" y1="260" x2="512" y2="260" stroke="rgba(255,255,255,.05)" strokeWidth=".8"/>
+      <line x1="626" y1="421" x2="504" y2="325" stroke="rgba(255,255,255,.05)" strokeWidth=".8"/>
+      {[[375,195],[368,260],[376,325],[505,195],[512,260],[504,325]].map(([cx,cy],i)=>(
+        <circle key={i} cx={cx} cy={cy} r="2.5" fill="none" stroke="rgba(255,255,255,.18)" strokeWidth=".8"/>
+      ))}
+    </svg>
+  );
+}
+
+function Particles() {
+  const list = Array.from({length:18},(_,i)=>({
+    id:i, size:2+(i%4),
+    left:`${15+(i*37)%70}%`, top:`${10+(i*53)%80}%`,
+    dur:`${8+(i%6)*2}s`, delay:`${-(i*1.1)}s`,
+    opacity:.15+(i%4)*.12,
+  }));
+  return (
+    <div className="ab-particles" aria-hidden="true">
+      {list.map(p=>(
+        <div key={p.id} className="ab-particle" style={{
+          width:p.size, height:p.size, left:p.left, top:p.top,
+          opacity:p.opacity, animationDuration:p.dur, animationDelay:p.delay,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+const LEFT_TAGS = [
+  {label:"UI/UX Design",       cls:"ab-t-uiux"},
+  {label:"Cloud Hosting",      cls:"ab-t-cloud"},
+  {label:"Digital Marketing",  cls:"ab-t-marketing"},
+];
+const RIGHT_TAGS = [
+  {label:"Web Development",    cls:"ab-t-web"},
+  {label:"App Development",    cls:"ab-t-app"},
+  {label:"AI & ML Integration",cls:"ab-t-ai"},
+];
+const MOBILE_TAGS = [
+  {label:"UI/UX Design",       cls:"ab-mt-uiux"},
+  {label:"Web Development",    cls:"ab-mt-web"},
+  {label:"App Development",    cls:"ab-mt-app"},
+  {label:"Cloud Hosting",      cls:"ab-mt-cloud"},
+  {label:"Digital Marketing",  cls:"ab-mt-marketing"},
+  {label:"AI & ML Integration",cls:"ab-mt-ai"},
+];
+const LANGS = [
+  {name:"Dart",        color:"#54C5F8"},
+  {name:"Flutter",     color:"#45D1FD"},
+  {name:"React.js",    color:"#61DAFB"},
+  {name:"Next.js",     color:"#ffffff"},
+  {name:"TypeScript",  color:"#3178C6"},
+  {name:"Node.js",     color:"#68A063"},
+  {name:"Firebase",    color:"#FFCA28"},
+  {name:"FlutterFlow", color:"#B259FF"},
+  {name:"Tailwind",    color:"#38BDF8"},
+  {name:"REST APIs",   color:"#FF7262"},
 ];
 
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 28 },
-  show: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.1 + 0.2,
-      duration: 0.65,
-      // Adding "as const" or typing the object ensures TS recognizes the cubic-bezier
-      ease: [0.16, 1, 0.3, 1], 
-    },
-  }),
-};
-
 export default function About() {
+  const [v, setV] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const illusRef   = useRef<HTMLDivElement>(null);
+  const btn1Ref    = useRef<HTMLAnchorElement>(null);
+  const btn2Ref    = useRef<HTMLAnchorElement>(null);
+
+  useEffect(()=>{
+    const el=sectionRef.current; if(!el) return;
+    const obs=new IntersectionObserver(([e])=>{if(e.isIntersecting) setV(true)},{threshold:.10});
+    obs.observe(el);
+    return ()=>obs.disconnect();
+  },[]);
+
+  const onMouseMove = useCallback((e:React.MouseEvent<HTMLDivElement>)=>{
+    const w=illusRef.current; if(!w) return;
+    const r=w.getBoundingClientRect();
+    const dx=(e.clientX-r.left-r.width/2)/(r.width/2);
+    const dy=(e.clientY-r.top-r.height/2)/(r.height/2);
+    w.style.transform=`translate(-50%,-50%) rotateY(${dx*14}deg) rotateX(${-dy*10}deg) scale(1.04)`;
+  },[]);
+  const onMouseLeave = useCallback(()=>{
+    if(illusRef.current)
+      illusRef.current.style.transform="translate(-50%,-50%) rotateY(0deg) rotateX(0deg) scale(1)";
+  },[]);
+
+  /* Magnetic + ripple buttons */
+  const makeMagnetic = useCallback((ref: React.RefObject<HTMLAnchorElement>) => {
+    const btn = ref.current; if(!btn) return;
+    const inner = btn.querySelector<HTMLElement>(".ab-btn-inner");
+    const onMove = (e: MouseEvent) => {
+      const r = btn.getBoundingClientRect();
+      const dx = (e.clientX-r.left-r.width/2)*.3;
+      const dy = (e.clientY-r.top-r.height/2)*.3;
+      btn.style.transform=`translate(${dx}px,${dy}px) scale(1.04)`;
+      if(inner) inner.style.transform=`translate(${dx*.55}px,${dy*.55}px)`;
+    };
+    const onLeave = () => { btn.style.transform=""; if(inner) inner.style.transform=""; };
+    const onClick = (e: MouseEvent) => {
+      const r=btn.getBoundingClientRect();
+      const rp=document.createElement("span"); rp.className="ab-btn-ripple";
+      const s=Math.max(r.width,r.height);
+      rp.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;
+      btn.appendChild(rp); rp.addEventListener("animationend",()=>rp.remove());
+    };
+    btn.addEventListener("mousemove",onMove);
+    btn.addEventListener("mouseleave",onLeave);
+    btn.addEventListener("click",onClick);
+    return ()=>{btn.removeEventListener("mousemove",onMove);btn.removeEventListener("mouseleave",onLeave);btn.removeEventListener("click",onClick)};
+  },[]);
+
+  useEffect(()=>{ const c1=makeMagnetic(btn1Ref); const c2=makeMagnetic(btn2Ref); return ()=>{c1?.();c2?.();}; },[v,makeMagnetic]);
+
   return (
-    <section id="about" className="about-root">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    <>
+      <style dangerouslySetInnerHTML={{__html:css}}/>
 
-        .about-root {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          padding: 120px 8vw;
-          background: #f8fafc;
-          position: relative;
-          overflow: hidden;
-        }
+      <section id="about" ref={sectionRef} className="ab-wrap">
+        <div className="ab-topline"/>
+        <div className="ab-blob-l" aria-hidden="true"/>
+        <div className="ab-blob-r" aria-hidden="true"/>
+        <div className="ab-grain-a" aria-hidden="true"/>
+        <div className="ab-grain-b" aria-hidden="true"/>
+        <div className="ab-grain-c" aria-hidden="true"/>
+        <div className="ab-scan" aria-hidden="true"/>
 
-        /* ── LIQUID BLOBS ── */
-        .ab-blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(90px);
-          pointer-events: none;
-          animation: abdrift ease-in-out infinite alternate;
-        }
-        .ab1 { width:460px;height:460px;background:#0ea5e9;opacity:.09;top:-80px;left:-100px;animation-duration:19s; }
-        .ab2 { width:380px;height:380px;background:#001f3f;opacity:.06;bottom:-60px;right:-80px;animation-duration:24s;animation-delay:-9s; }
-        .ab3 { width:240px;height:240px;background:#7dd3fc;opacity:.1;top:55%;left:55%;animation-duration:14s;animation-delay:-5s; }
-        @keyframes abdrift {
-          from { transform:translate(0,0) scale(1); }
-          to   { transform:translate(55px,45px) scale(1.1); }
-        }
+        <div className="ab-inner">
 
-        /* dot grid */
-        .ab-dotgrid {
-          position:absolute;inset:0;pointer-events:none;
-          background-image:radial-gradient(rgba(0,31,63,.06) 1px,transparent 1px);
-          background-size:38px 38px;
-          mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);
-        }
-
-        /* ── LAYOUT ── */
-        .about-container {
-          position: relative; z-index: 2;
-          max-width: 1200px;
-          margin: 0 auto;
-          display: grid;
-          grid-template-columns: 1fr 1.25fr;
-          gap: 90px;
-          align-items: center;
-        }
-
-        /* ── IMAGE SIDE ── */
-        .about-image-wrap {
-          position: relative;
-          aspect-ratio: 1/1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* Animated liquid glow behind photo */
-        .img-glow {
-          position: absolute;
-          width: 92%; height: 92%;
-          background: linear-gradient(135deg, #0ea5e9 0%, #001f3f 100%);
-          opacity: .12;
-          border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-          animation: imgmorph 9s ease-in-out infinite;
-          z-index: 1;
-        }
-
-        /* Second accent ring */
-        .img-ring {
-          position: absolute;
-          width: 100%; height: 100%;
-          border: 1.5px solid rgba(14,165,233,.18);
-          border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-          animation: imgmorph 9s ease-in-out infinite reverse;
-          z-index: 1;
-        }
-
-        /* Photo frame — liquid shape */
-        .img-frame {
-          position: relative;
-          z-index: 2;
-          width: 82%; height: 82%;
-          overflow: hidden;
-          background: #e2e8f0;
-          border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-          animation: imgmorph 9s ease-in-out infinite reverse;
-          border: 4px solid rgba(255,255,255,.9);
-          box-shadow: 0 24px 60px rgba(0,31,63,.12);
-        }
-        .img-frame img {
-          width:100%;height:100%;object-fit:cover;object-position:center top;
-        }
-
-        @keyframes imgmorph {
-          0%   { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-          50%  { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-          100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-        }
-
-        /* floating stat pill on image */
-        .img-stat {
-          position: absolute;
-          z-index: 3;
-          background: rgba(255,255,255,.82);
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(0,31,63,.07);
-          padding: 12px 20px;
-          display: flex; align-items: center; gap: 10px;
-          transition: border-radius .5s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .img-stat:hover { border-radius: 50% !important; }
-        .stat-s1 {
-          bottom: 10%; left: -10%;
-          border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%;
-        }
-        .stat-s2 {
-          top: 10%; right: -8%;
-          border-radius: 60% 40% 40% 60% / 50% 50% 50% 50%;
-        }
-        .stat-num {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 1.8rem; line-height: 1;
-          background: linear-gradient(135deg,#001f3f,#0ea5e9);
-          -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-        }
-        .stat-lbl { font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: .8px; text-transform: uppercase; }
-
-        /* ── TEXT SIDE ── */
-        .about-eyebrow {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: rgba(14,165,233,.08); border: 1px solid rgba(14,165,233,.18);
-          padding: 6px 16px; border-radius: 100px;
-          font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-          color: #0ea5e9; margin-bottom: 20px;
-        }
-        .about-eyebrow span {
-          width:6px;height:6px;background:#0ea5e9;border-radius:50%;display:inline-block;
-          animation: pulse 1.8s infinite;
-        }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
-
-        .about-h2 {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(3rem, 6vw, 4.8rem);
-          line-height: .9; color: #010f1e; margin-bottom: 24px;
-        }
-        .about-h2 span { color: #0ea5e9; }
-
-        .about-p {
-          color: #475569; font-size: 1.05rem; line-height: 1.8;
-          margin-bottom: 44px; max-width: 560px;
-        }
-        .about-p strong { color: #001f3f; font-weight: 700; }
-
-        /* ── VALUE CARDS ── */
-        .values-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 16px;
-        }
-        .value-card {
-          padding: 22px 20px;
-          background: rgba(255,255,255,.55);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(0,31,63,.07);
-          border-radius: 40% 20% 40% 20% / 20% 40% 20% 40%;
-          transition:
-            border-radius .55s cubic-bezier(0.175,0.885,0.32,1.275),
-            background .3s ease,
-            box-shadow .3s ease,
-            transform .3s ease;
-          cursor: default;
-        }
-        .value-card:hover {
-          border-radius: 20% 40% 20% 40% / 40% 20% 40% 20%;
-          background: #fff;
-          box-shadow: 0 20px 40px rgba(0,31,63,.08);
-          transform: translateY(-6px);
-          border-color: rgba(14,165,233,.15);
-        }
-        .val-icon {
-          width: 40px; height: 40px;
-          background: rgba(14,165,233,.08);
-          border-radius: 60% 40% 60% 40% / 50% 50% 50% 50%;
-          display: flex; align-items: center; justify-content: center;
-          color: #0ea5e9; margin-bottom: 14px;
-          transition: border-radius .4s ease, background .3s ease;
-        }
-        .value-card:hover .val-icon {
-          border-radius: 50%;
-          background: rgba(14,165,233,.14);
-        }
-        .val-title { font-weight: 800; color: #001f3f; font-size: .95rem; margin-bottom: 6px; }
-        .val-desc  { font-size: .85rem; color: #64748b; line-height: 1.55; }
-
-        @media (max-width: 1024px) {
-          .about-container { grid-template-columns: 1fr; gap: 60px; text-align: center; }
-          .about-image-wrap { max-width: 360px; margin: 0 auto; }
-          .about-p { margin-left: auto; margin-right: auto; }
-          .about-eyebrow { margin-left: auto; margin-right: auto; }
-          .values-grid { justify-items: center; }
-          .stat-s1 { left: -5%; }
-          .stat-s2 { right: -5%; }
-        }
-        @media (max-width: 640px) {
-          .about-root { padding: 80px 20px; }
-          .img-stat { display: none; }
-        }
-      `}</style>
-
-      {/* BG layers */}
-      <div className="ab-dotgrid" />
-      <div className="ab-blob ab1" />
-      <div className="ab-blob ab2" />
-      <div className="ab-blob ab3" />
-
-      <div className="about-container">
-
-        {/* ── LEFT: PHOTO ── */}
-        <motion.div
-          className="about-image-wrap"
-          initial={{ opacity: 0, scale: 0.85 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="img-glow" />
-          <div className="img-ring" />
-
-          <div className="img-frame">
-            <img src="/myportait.png" alt="Aniket Jamunde" />
+          {/* Heading + description */}
+          <div className="ab-head">
+            <p className={`ab-eyebrow${v?" show":""}`}>Who I Am</p>
+            <div className="ab-title-wrap">
+              <h2 className={`ab-title${v?" show":""}`}>Meet Aniket Jamunde</h2>
+              <div className={`ab-title-line${v?" show":""}`}/>
+            </div>
+            <p className={`ab-desc${v?" show":""}`}>
+              I&apos;m a Web Developer &amp; Flutter Developer passionate about turning
+              ideas into fast, beautiful, and user-friendly digital products.
+              I build modern websites with React &amp; Next.js and cross-platform
+              mobile apps with Flutter — blending clean code, smooth UX, and real
+              business impact into every project I ship.
+            </p>
           </div>
 
-          {/* Floating stat pills */}
-          <motion.div
-            className="img-stat stat-s1"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5, duration: 0.6 }}
+          {/* Desktop: orbit stage */}
+          <div
+            className={`ab-stage${v?" show":""}`}
+            onMouseMove={onMouseMove}
+            onMouseLeave={onMouseLeave}
           >
-            <div>
-              <div className="stat-num">15+</div>
-              <div className="stat-lbl">Projects</div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="img-stat stat-s2"
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-          >
-            <div>
-              <div className="stat-num">1.5+</div>
-              <div className="stat-lbl">Yrs Exp</div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* ── RIGHT: TEXT ── */}
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-        >
-          <motion.div custom={0} variants={fadeUp} className="about-eyebrow">
-            <span /> About Me
-          </motion.div>
-
-          <motion.h2 custom={1} variants={fadeUp} className="about-h2">
-            I am Aniket, a <span>Full-Stack</span><br />Developer.
-          </motion.h2>
-
-          <motion.p custom={2} variants={fadeUp} className="about-p">
-            I specialize in bridging the gap between complex backend logic and intuitive frontend
-            experiences. With a core focus on <strong>Flutter and Next.js</strong>, I build
-            high-performance applications that are as functional as they are beautiful — crafting
-            digital solutions that feel completely seamless to the end user.
-          </motion.p>
-
-          <motion.div custom={3} variants={fadeUp} className="values-grid">
-            {CORE_VALUES.map((v, i) => (
-              <div key={i} className="value-card">
-                <div className="val-icon">{v.icon}</div>
-                <div className="val-title">{v.title}</div>
-                <div className="val-desc">{v.desc}</div>
-              </div>
+            <OrbitLines/>
+            <Particles/>
+            {LEFT_TAGS.map(t=>(
+              <div key={t.cls} className={`ab-tag ${t.cls}${v?" show":""}`}>{t.label}</div>
             ))}
-          </motion.div>
-        </motion.div>
+            {RIGHT_TAGS.map(t=>(
+              <div key={t.cls} className={`ab-tag ${t.cls}${v?" show":""}`}>{t.label}</div>
+            ))}
+            <div className="ab-illus-wrap" ref={illusRef}>
+              <img src="/laptop.png" alt="3D laptop illustration" className="ab-illus" loading="lazy" decoding="async"/>
+            </div>
+          </div>
 
-      </div>
-    </section>
+          {/* Mobile: laptop + stacked tags */}
+          <div className="ab-mobile-layout">
+            <div className={`ab-mobile-illus-wrap${v?" show":""}`}>
+              <img src="/laptop.png" alt="3D laptop illustration" className="ab-mobile-illus" loading="lazy" decoding="async"/>
+            </div>
+            <div className="ab-mobile-tags">
+              {MOBILE_TAGS.map(t=>(
+                <div key={t.cls} className={`ab-mtag ${t.cls}${v?" show":""}`}>{t.label}</div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tech stack pills with shimmer */}
+          <div className={`ab-langs${v?" show":""}`}>
+            {LANGS.map(({name,color})=>(
+              <span key={name} className="ab-lang">
+                <span className="ab-lang-dot" style={{background:color}}/>
+                {name}
+              </span>
+            ))}
+          </div>
+
+          {/* CTA Buttons — magnetic + ripple */}
+          <div className={`ab-btns${v?" show":""}`}>
+            <a href="#contact" className="ab-btn" ref={btn1Ref}>
+              <span className="ab-btn-inner">Hire Me</span>
+            </a>
+            <a href="/resume.pdf" download className="ab-btn secondary" ref={btn2Ref}>
+              <span className="ab-btn-inner">Download CV</span>
+            </a>
+          </div>
+
+        </div>
+      </section>
+    </>
   );
 }

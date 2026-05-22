@@ -1,394 +1,534 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Layers, Star, ArrowRight } from "lucide-react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { projects } from "../data/Projects";
 
-/* ── TILT CARD ── */
+/* ─────────────────────────────────────────────────────────────
+   TILT CARD
+───────────────────────────────────────────────────────────── */
 const TiltCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const rx = useSpring(useTransform(my, [-0.5, 0.5], [6, -6]), { stiffness: 280, damping: 28 });
-  const ry = useSpring(useTransform(mx, [-0.5, 0.5], [-6, 6]), { stiffness: 280, damping: 28 });
-  const gx = useTransform(mx, [-0.5, 0.5], ["15%", "85%"]);
-  const gy = useTransform(my, [-0.5, 0.5], ["15%", "85%"]);
+  const raf = useRef<number | null>(null);
+  const cur = useRef({ rx: 0, ry: 0, gx: 50, gy: 50, sc: 1 });
+
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+  const drive = useCallback((trx: number, try_: number, tgx: number, tgy: number, tsc: number) => {
+    if (raf.current) cancelAnimationFrame(raf.current);
+    const tick = () => {
+      const c = cur.current;
+      c.rx = lerp(c.rx, trx, 0.1);
+      c.ry = lerp(c.ry, try_, 0.1);
+      c.gx = lerp(c.gx, tgx, 0.1);
+      c.gy = lerp(c.gy, tgy, 0.1);
+      c.sc = lerp(c.sc, tsc, 0.08);
+      const el = ref.current;
+      if (el) {
+        el.style.transform = `perspective(820px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) scale(${c.sc})`;
+        el.style.setProperty("--gx", `${c.gx}%`);
+        el.style.setProperty("--gy", `${c.gy}%`);
+      }
+      const d = Math.abs(c.rx - trx) + Math.abs(c.ry - try_) + Math.abs(c.sc - tsc);
+      if (d > 0.009) raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+  }, []);
+
+  useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
 
   return (
-    <motion.div
+    <div
       ref={ref}
       className={className}
-      style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}
+      style={{ transformStyle: "preserve-3d", willChange: "transform" }}
       onMouseMove={(e) => {
         const r = ref.current!.getBoundingClientRect();
-        mx.set((e.clientX - r.left) / r.width - 0.5);
-        my.set((e.clientY - r.top) / r.height - 0.5);
+        const nx = (e.clientX - r.left) / r.width - 0.5;
+        const ny = (e.clientY - r.top) / r.height - 0.5;
+        drive(-ny * 10, nx * 10, (nx + 0.5) * 100, (ny + 0.5) * 100, 1.04);
       }}
-      onMouseLeave={() => { mx.set(0); my.set(0); }}
+      onMouseLeave={() => drive(0, 0, 50, 50, 1)}
     >
-      <motion.div
-        style={{
-          position: "absolute", inset: 0, borderRadius: "inherit",
-          pointerEvents: "none", zIndex: 10,
-          background: `radial-gradient(circle at ${gx} ${gy}, rgba(255,255,255,0.13) 0%, transparent 60%)`,
-        }}
-      />
+      <div className="ps-card-glint" />
       {children}
-    </motion.div>
+    </div>
   );
 };
 
-/* ── SKELETON ── */
-const Skeleton = () => (
-  <div className="sk-card">
-    <div className="sk-img" />
-    <div className="sk-body">
-      <div className="sk-line s" /><div className="sk-line l" /><div className="sk-line m" />
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <div className="sk-chip" /><div className="sk-chip" />
-      </div>
-    </div>
-  </div>
-);
-
-/* ── FILTER PILL ── */
-const Pill = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
-  <motion.button
-    onClick={onClick}
-    whileTap={{ scale: 0.93 }}
-    className={`filter-pill ${active ? "pill-active" : ""}`}
-  >
-    {children}
-  </motion.button>
-);
-
-/* ══════════════════════════════
-   PROJECTS SECTION
-══════════════════════════════ */
-export default function ProjectsSection() {
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("All");
+/* ─────────────────────────────────────────────────────────────
+   PROJECT CARD
+───────────────────────────────────────────────────────────── */
+const ProjectCard = ({ project, idx }: { project: any; idx: number }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const colPos = idx % 3;
+  const isMiddle = colPos === 1;
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(t);
-  }, []);
-
-  const categories = ["All", ...Array.from(new Set(projects.map((p) => p.category)))];
-  const filtered = filter === "All" ? projects : projects.filter((p) => p.category === filter);
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0) scale(1)";
+          el.style.transition = `opacity 0.72s cubic-bezier(.22,1,.36,1) ${colPos * 90}ms, transform 0.72s cubic-bezier(.22,1,.36,1) ${colPos * 90}ms`;
+          io.disconnect();
+        }
+      },
+      { threshold: 0.08, rootMargin: "-40px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [colPos]);
 
   return (
-    <section id="projects" className="proj-root">
+    <div
+      ref={ref}
+      style={{ marginTop: isMiddle ? -44 : 0, opacity: 0, transform: "translateY(56px) scale(0.95)" }}
+    >
+      <TiltCard className="ps-card">
+        <div className="ps-card-ring" />
+        <img src={project.mockup} alt={project.name} className="ps-card-img" loading="lazy" />
+        <div className="ps-card-scanlines" />
+
+        {/* Bottom strip — project name, always visible */}
+        <div className="ps-card-strip">
+          <span className="ps-card-num">0{idx + 1}</span>
+          <span className="ps-card-name">{project.name}</span>
+        </div>
+
+        {/* Hover overlay */}
+        <div className="ps-card-overlay">
+          <div className="ps-card-overlay-inner">
+            {project.desc && (
+              <p className="ps-card-desc">{project.desc}</p>
+            )}
+            {project.links.view || project.links.apk ? (
+              <a
+                href={project.links.view || project.links.apk}
+                target="_blank"
+                rel="noreferrer"
+                className="ps-card-link"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span>View Project</span>
+                <ArrowRight size={13} />
+              </a>
+            ) : (
+              <span className="ps-coming-soon">Case Study Soon</span>
+            )}
+          </div>
+        </div>
+      </TiltCard>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   TECH TICKER
+───────────────────────────────────────────────────────────── */
+const TECHS = [
+  "React", "Next.js", "Flutter", "TypeScript", "HTML", "CSS",
+  "Dart", "Supabase", "Node.js", "Firebase", "MongoDB", "Figma",
+];
+
+const TechTicker = () => {
+  const items = [...TECHS, ...TECHS, ...TECHS, ...TECHS];
+  return (
+    <div className="ps-ticker-wrap" aria-hidden="true">
+      <div className="ps-ticker-track">
+        {items.map((t, i) => (
+          <span key={i} className="ps-ticker-item">
+            {t}<span className="ps-ticker-sep">·</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION HEADER
+───────────────────────────────────────────────────────────── */
+const SectionHeader = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setShow(true); }, { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="ps-header">
+      <p className={`ps-eyebrow${show ? " show" : ""}`}>Selected Work</p>
+      <h2 className={`ps-title${show ? " show" : ""}`}>
+        Projects that <br />Ship Results
+      </h2>
+      <p className={`ps-subtitle${show ? " show" : ""}`}>
+        A curated collection of web and mobile experiences — each built with
+        precision, purpose, and a relentless focus on the end user.
+      </p>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════
+   PROJECTS SECTION
+═══════════════════════════════════════════════════════════ */
+export default function ProjectsSection() {
+  return (
+    <section id="projects" className="ps-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-        .proj-root {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          padding: 120px 6vw;
-          background: #f8fafc;
-          position: relative;
+        /* ── ROOT ──────────────────────────────────────────────────────── */
+        .ps-root {
+          font-family: 'DM Sans', sans-serif;
+          background: #000;
           overflow: hidden;
+          padding-bottom: 130px;
+          position: relative;
+          isolation: isolate;
         }
 
-        /* ── LIQUID BLOBS ── */
-        .proj-blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(90px);
-          pointer-events: none;
-          animation: bdrift ease-in-out infinite alternate;
+        /* ── GRAIN ─────────────────────────────────────────────────────── */
+        .ps-root::before {
+          content: '';
+          position: absolute; inset: 0; z-index: 1; pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+          background-size: 180px 180px; mix-blend-mode: overlay;
+          opacity: 0.04; animation: psGrain 0.22s steps(1) infinite;
         }
-        .pb1 { width:500px;height:500px;background:#0ea5e9;opacity:.1;top:-120px;right:-100px;animation-duration:20s; }
-        .pb2 { width:400px;height:400px;background:#001f3f;opacity:.07;bottom:-80px;left:-80px;animation-duration:25s;animation-delay:-8s; }
-        .pb3 { width:280px;height:280px;background:#7dd3fc;opacity:.1;top:45%;left:38%;animation-duration:16s;animation-delay:-4s; }
-        @keyframes bdrift {
-          from { transform: translate(0,0) scale(1); }
-          to   { transform: translate(50px,40px) scale(1.12); }
+        @keyframes psGrain {
+          0%  { background-position: 0 0 }     33% { background-position: -22px 14px }
+          66% { background-position: 18px -10px }
         }
 
-        /* dot grid */
-        .proj-grid-bg {
-          position: absolute; inset: 0; pointer-events: none;
-          background-image: radial-gradient(rgba(0,31,63,.06) 1px, transparent 1px);
-          background-size: 38px 38px;
-          mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+        /* ── AMBIENT BLOBS ─────────────────────────────────────────────── */
+        .ps-blob-l {
+          position: absolute; z-index: 0; pointer-events: none;
+          width: clamp(300px, 42vw, 560px); height: clamp(300px, 42vw, 560px);
+          left: -10%; top: 15%; border-radius: 50%;
+          background: radial-gradient(circle, rgba(30,80,255,.07) 0%, transparent 68%);
+          animation: psBlobPulse 8s ease-in-out infinite;
+        }
+        .ps-blob-r {
+          position: absolute; z-index: 0; pointer-events: none;
+          width: clamp(260px, 36vw, 480px); height: clamp(260px, 36vw, 480px);
+          right: -8%; bottom: 10%; border-radius: 50%;
+          background: radial-gradient(circle, rgba(100,30,255,.06) 0%, transparent 68%);
+          animation: psBlobPulse 10s ease-in-out infinite reverse;
+        }
+        @keyframes psBlobPulse {
+          0%,100% { transform: scale(1); opacity: 1; }
+          50%     { transform: scale(1.18); opacity: .65; }
         }
 
-        /* ── HEADER ── */
-        .proj-header { text-align:center; margin-bottom:20px; position:relative; z-index:2; }
-        .proj-eyebrow {
-          display:inline-flex; align-items:center; gap:8px;
-          background:rgba(14,165,233,.08); border:1px solid rgba(14,165,233,.18);
-          padding:6px 16px; border-radius:100px;
-          font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
-          color:#0ea5e9; margin-bottom:20px;
-        }
-        .proj-eyebrow span {
-          width:6px;height:6px;background:#0ea5e9;border-radius:50%;display:inline-block;
-          animation:pulse 1.8s infinite;
-        }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
-        .proj-title {
-          font-family:'Bebas Neue',sans-serif;
-          font-size:clamp(3.5rem,8vw,6rem);
-          line-height:.88; color:#010f1e; margin-bottom:16px;
-        }
-        .proj-title span { color:#0ea5e9; }
-        .proj-sub { font-size:1rem;color:#94a3b8;font-weight:500;letter-spacing:.5px;margin-bottom:44px; }
-
-        /* ── FILTER BAR ── */
-        .filter-bar {
-          display:flex; gap:10px; justify-content:center;
-          flex-wrap:wrap; margin-bottom:60px; position:relative; z-index:2;
-        }
-        .filter-pill {
-          padding:9px 22px;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          font-family:'Plus Jakarta Sans',sans-serif;
-          font-size:13px; font-weight:700; cursor:pointer;
-          border:1px solid rgba(0,31,63,.1);
-          background:rgba(255,255,255,.6); color:#64748b;
-          backdrop-filter:blur(10px);
-          transition:all .45s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .filter-pill:hover {
-          background:#fff; color:#001f3f;
-          border-radius:40% 60% 40% 60% / 50% 50% 50% 50%;
-        }
-        .pill-active {
-          background:#001f3f !important; color:#fff !important;
-          border-color:transparent; border-radius:50% !important;
-          box-shadow:0 8px 24px rgba(0,31,63,.22);
+        /* ── TOP SEPARATOR ─────────────────────────────────────────────── */
+        .ps-topline {
+          height: 1px;
+          background: linear-gradient(90deg,
+            transparent 0%, rgba(255,255,255,.07) 25%,
+            rgba(80,140,255,.15) 50%,
+            rgba(255,255,255,.07) 75%, transparent 100%
+          );
+          position: relative; z-index: 2;
         }
 
-        /* ── CARD GRID ── */
-        .proj-grid {
-          display:grid;
-          grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
-          gap:28px; max-width:1280px; margin:0 auto;
-          position:relative; z-index:2;
+        /* ── SECTION HEADER ────────────────────────────────────────────── */
+        .ps-header {
+          position: relative; z-index: 2;
+          text-align: center;
+          padding: clamp(4rem, 8vh, 7rem) clamp(1.5rem, 5vw, 3rem) 0;
+          max-width: 720px; margin: 0 auto;
         }
 
-        /* ── CARD — LIQUID ORGANIC SHAPE ── */
-        .proj-card {
-          background:rgba(255,255,255,.62);
-          backdrop-filter:blur(24px);
-          border:1px solid rgba(0,31,63,.07);
-          border-radius:40% 20% 40% 20% / 20% 40% 20% 40%;
-          overflow:hidden;
-          display:flex; flex-direction:column;
-          position:relative; cursor:pointer;
-          transition:
-            border-radius .6s cubic-bezier(0.175,0.885,0.32,1.275),
-            box-shadow .4s ease,
-            border-color .4s ease,
-            background .3s ease;
+        .ps-eyebrow {
+          font-family: 'DM Sans', sans-serif;
+          font-size: clamp(.6rem, .85vw, .7rem); font-weight: 400;
+          color: rgba(255,255,255,.22); letter-spacing: .38em; text-transform: uppercase;
+          margin-bottom: .9rem;
+          opacity: 0; transform: translateY(10px);
+          transition: opacity .6s ease, transform .6s ease;
         }
-        .proj-card:hover {
-          border-radius:20% 40% 20% 40% / 40% 20% 40% 20%;
-          box-shadow:0 32px 64px -16px rgba(0,31,63,.14);
-          border-color:rgba(14,165,233,.18);
-          background:#fff;
+        .ps-eyebrow.show { opacity: 1; transform: none; }
+
+        .ps-title {
+          font-family: 'DM Sans', sans-serif; font-weight: 700;
+          font-size: clamp(2.4rem, 5.5vw, 4.8rem);
+          color: #fff; letter-spacing: -.035em; line-height: 1.06;
+          margin: 0 0 clamp(.8rem, 1.5vw, 1.2rem);
+          opacity: 0; transform: translateY(24px);
+          transition: opacity .85s ease .1s, transform .85s ease .1s;
+        }
+        .ps-title.show { opacity: 1; transform: none; }
+
+        .ps-subtitle {
+          font-family: 'DM Sans', sans-serif; font-weight: 400;
+          font-size: clamp(.85rem, 1.15vw, 1rem);
+          color: rgba(255,255,255,.38); line-height: 1.8;
+          margin: 0;
+          opacity: 0; transform: translateY(14px);
+          transition: opacity .8s ease .22s, transform .8s ease .22s;
+        }
+        .ps-subtitle.show { opacity: 1; transform: none; }
+
+        /* ── TICKER ────────────────────────────────────────────────────── */
+        .ps-ticker-wrap {
+          position: relative; z-index: 2;
+          width: 100%; overflow: hidden;
+          padding: 44px 0 48px;
+          -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+        }
+        .ps-ticker-track {
+          display: flex; width: max-content;
+          animation: psTicker 65s linear infinite;
+        }
+        .ps-ticker-wrap:hover .ps-ticker-track { animation-play-state: paused; }
+        @keyframes psTicker {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .ps-ticker-item {
+          display: inline-flex; align-items: center;
+          font-size: clamp(1.8rem, 2.6vw, 2.4rem); font-weight: 500;
+          letter-spacing: -0.01em;
+          color: rgba(255,255,255,0.35);
+          white-space: nowrap; padding: 0 0.1em; line-height: 1;
+          transition: color 0.4s ease;
+          cursor: default;
+        }
+        .ps-ticker-item:hover { color: rgba(255,255,255,0.85); }
+        .ps-ticker-sep {
+          color: rgba(255,255,255,.1);
+          font-size: 0.6em;
+          margin: 0 clamp(0.4rem, 1vw, 0.85rem);
+          font-weight: 300; align-self: center;
         }
 
-        /* ── IMAGE ── */
-        .card-img-wrap {
-          height:220px; position:relative;
-          overflow:hidden; background:#f1f5f9;
-        }
-        .card-glow {
-          position:absolute; inset:0; z-index:1; transition:opacity .4s;
-        }
-        .proj-card:hover .card-glow { opacity:.32 !important; }
-        .card-img {
-          width:100%;height:100%;object-fit:cover;
-          position:relative; z-index:2;
-          transition:transform .65s cubic-bezier(0.33,1,0.68,1);
-        }
-        .proj-card:hover .card-img { transform:scale(1.07); }
-        .card-num {
-          position:absolute; top:14px; right:14px; z-index:3;
-          font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:2px;
-          background:rgba(255,255,255,.88); backdrop-filter:blur(10px);
-          padding:4px 10px; border-radius:100px; color:#001f3f;
+        /* ── GRID ──────────────────────────────────────────────────────── */
+        .ps-grid {
+          position: relative; z-index: 2;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          padding: 0 clamp(1rem, 4vw, 2.5rem);
+          max-width: 1340px;
+          margin: 0 auto;
+          overflow: visible;
+          align-items: start;
         }
 
-        /* ── BODY ── */
-        .card-body { padding:26px 28px 28px; flex-grow:1; display:flex; flex-direction:column; }
-        .card-tag {
-          display:inline-flex; align-items:center; gap:6px;
-          font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px;
-          padding:5px 12px;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          background:rgba(14,165,233,.07); color:#0369a1;
-          margin-bottom:14px; width:fit-content;
-          transition:border-radius .4s ease;
+        /* ── CARD ──────────────────────────────────────────────────────── */
+        .ps-card {
+          border-radius: 20px;
+          overflow: hidden;
+          position: relative;
+          cursor: pointer;
+          aspect-ratio: 16 / 10;
+          background: #07101e;
+          border: 1px solid rgba(255,255,255,.07);
+          transition: border-color 0.45s ease, box-shadow 0.45s ease;
         }
-        .card-tag:hover { border-radius:50%; }
-        .card-name {
-          font-family:'Bebas Neue',sans-serif;
-          font-size:2rem; line-height:.95; color:#001f3f;
-          margin-bottom:10px; letter-spacing:.5px;
-        }
-        .card-tagline {
-          font-size:.9rem; color:#64748b; font-weight:500;
-          line-height:1.6; flex-grow:1;
+        .ps-card:hover {
+          border-color: rgba(255,255,255,.14);
+          box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(80,140,255,.08);
         }
 
-        /* ── REVIEW ── */
-        .card-review {
-          margin-top:20px; padding-top:18px;
-          border-top:1px dashed rgba(0,31,63,.08);
+        /* Spinning ring border */
+        @property --psAngle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
         }
-        .star-row { display:flex; gap:3px; color:#f59e0b; margin-bottom:8px; }
-        .review-text {
-          font-size:.82rem; color:#475569; font-style:italic; line-height:1.55;
-          display:-webkit-box; -webkit-line-clamp:2;
-          -webkit-box-orient:vertical; overflow:hidden;
+        .ps-card-ring {
+          position: absolute; inset: 0; border-radius: 20px; padding: 1px;
+          background: conic-gradient(
+            from var(--psAngle),
+            transparent 8%,
+            rgba(90,160,255,0.65) 20%,
+            rgba(180,100,255,0.60) 34%,
+            transparent 46%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          pointer-events: none; z-index: 6;
+          opacity: 0; transition: opacity 0.4s ease;
+          animation: psRingSpin 2.4s linear infinite paused;
+        }
+        @keyframes psRingSpin { to { --psAngle: 360deg; } }
+        .ps-card:hover .ps-card-ring { opacity: 1; animation-play-state: running; }
+
+        /* Glint */
+        .ps-card-glint {
+          position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 7;
+          background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,.08) 0%, transparent 55%);
+          opacity: 0; transition: opacity 0.3s ease;
+        }
+        .ps-card:hover .ps-card-glint { opacity: 1; }
+
+        /* Image */
+        .ps-card-img {
+          width: 100%; height: 100%; object-fit: cover; display: block;
+          transition: transform 0.85s cubic-bezier(0.25,1,0.5,1), filter 0.5s ease;
+          filter: saturate(0.68) brightness(0.85);
+        }
+        .ps-card:hover .ps-card-img { transform: scale(1.07); filter: saturate(1.08) brightness(1.02); }
+
+        /* Scanlines */
+        .ps-card-scanlines {
+          position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0.4;
+          transition: opacity 0.5s ease;
+          background: repeating-linear-gradient(
+            to bottom, transparent, transparent 2px, rgba(0,0,0,.055) 2px, rgba(0,0,0,.055) 4px
+          );
+        }
+        .ps-card:hover .ps-card-scanlines { opacity: 0; }
+
+        /* Bottom strip */
+        .ps-card-strip {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          display: flex; align-items: center; gap: .75rem;
+          padding: 18px 18px 20px;
+          background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 60%, transparent 100%);
+          z-index: 5;
+          transition: opacity 0.35s ease, transform 0.4s cubic-bezier(.22,1,.36,1);
+        }
+        .ps-card:hover .ps-card-strip { opacity: 0; transform: translateY(8px); }
+
+        .ps-card-num {
+          font-size: .58rem; font-weight: 600;
+          color: rgba(255,255,255,.25); letter-spacing: .12em;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .ps-card-name {
+          font-size: .8rem; font-weight: 400;
+          letter-spacing: -.01em; color: rgba(255,255,255,.72);
         }
 
-        /* ── FOOTER ── */
-        .card-footer {
-          display:flex; align-items:center; justify-content:space-between;
-          margin-top:20px; padding-top:18px;
-          border-top:1px solid rgba(0,31,63,.05);
+        /* Hover overlay */
+        .ps-card-overlay {
+          position: absolute; inset: 0;
+          background: rgba(0,0,0,.58);
+          backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+          display: flex; align-items: center; justify-content: center;
+          opacity: 0; transition: opacity 0.32s ease;
+          z-index: 4; border-radius: inherit;
         }
-        .card-year { font-size:11px; font-weight:800; letter-spacing:1px; color:#cbd5e1; }
-        .card-link {
-          display:flex; align-items:center; gap:6px;
-          font-size:13px; font-weight:700; color:#0ea5e9;
-          text-decoration:none; padding:7px 16px;
-          border-radius:60% 40% 60% 40% / 50% 50% 50% 50%;
-          background:rgba(14,165,233,.07);
-          transition:all .45s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .card-link:hover {
-          background:#0ea5e9; color:#fff; border-radius:50%;
-          box-shadow:0 8px 20px rgba(14,165,233,.3);
-        }
-        .coming-soon { font-size:11px; font-weight:700; color:#cbd5e1; letter-spacing:.5px; }
+        .ps-card:hover .ps-card-overlay { opacity: 1; }
 
-        /* ── SKELETON ── */
-        .sk-card {
-          border-radius:40% 20% 40% 20% / 20% 40% 20% 40%;
-          overflow:hidden; background:rgba(255,255,255,.5);
-          border:1px solid rgba(0,31,63,.05);
+        .ps-card-overlay-inner {
+          display: flex; flex-direction: column; align-items: center; gap: .9rem;
+          padding: 1.2rem;
+          opacity: 0; transform: translateY(14px) scale(0.94);
+          transition: opacity 0.36s cubic-bezier(.22,1,.36,1) 0.05s,
+                      transform 0.36s cubic-bezier(.22,1,.36,1) 0.05s;
         }
-        .sk-img { height:220px; }
-        .sk-body { padding:26px 28px; }
-        .sk-line,.sk-chip,.sk-img {
-          background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);
-          background-size:300% 100%; animation:shimmer 1.6s infinite;
-          border-radius:8px; margin-bottom:10px;
-        }
-        .sk-line.s{height:10px;width:40%}
-        .sk-line.l{height:28px;width:80%}
-        .sk-line.m{height:10px;width:65%}
-        .sk-chip{height:26px;width:70px;border-radius:100px;display:inline-block;margin-right:8px}
-        @keyframes shimmer { 0%{background-position:300% 0} 100%{background-position:-300% 0} }
+        .ps-card:hover .ps-card-overlay-inner { opacity: 1; transform: translateY(0) scale(1); }
 
-        @media(max-width:640px){
-          .proj-grid{grid-template-columns:1fr}
-          .proj-root{padding:80px 20px}
-          .proj-card{border-radius:30% 20% 30% 20% / 20% 30% 20% 30%}
-          .proj-card:hover{border-radius:20% 30% 20% 30% / 30% 20% 30% 20%}
+        .ps-card-desc {
+          font-family: 'DM Sans', sans-serif;
+          font-size: .72rem; font-weight: 400;
+          color: rgba(255,255,255,.55); line-height: 1.6; text-align: center;
+          max-width: 220px; margin: 0;
+        }
+
+        /* ── VIEW PROJECT BUTTON — liquid chrome (ab-btn style) ─────────── */
+        .ps-card-link {
+          position: relative;
+          display: inline-flex; align-items: center; gap: 7px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: .8rem; font-weight: 500;
+          color: #fff;
+          text-decoration: none;
+          padding: .55rem 1.45rem;
+          border-radius: 10px;
+          background: linear-gradient(180deg, rgba(7,18,40,.60) 0%, rgba(3,8,19,.18) 100%);
+          border: 1px solid transparent;
+          transition: transform .4s cubic-bezier(.25,1,.5,1), box-shadow .4s ease, color .3s ease;
+        }
+        .ps-card-link::before {
+          content: ''; position: absolute; inset: -1px;
+          border-radius: 11px; padding: 1.5px;
+          background: linear-gradient(135deg,
+            rgba(255,255,255,.70)  0%,
+            rgba(40,110,250,.80)  25%,
+            rgba(10,30,80,.18)    50%,
+            rgba(45,120,255,.90)  75%,
+            rgba(255,255,255,.60) 100%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          pointer-events: none; transition: background .4s ease;
+        }
+        .ps-card-link::after {
+          content: ''; position: absolute; inset: 0; border-radius: 10px;
+          background: radial-gradient(circle at 50% 120%, rgba(45,130,255,.28) 0%, transparent 68%);
+          opacity: .38; pointer-events: none; transition: opacity .4s ease;
+        }
+        .ps-card-link:hover {
+          color: rgba(255,255,255,.96);
+          transform: translateY(-2px);
+          box-shadow: inset 0 0 16px rgba(45,125,255,.55), 0 0 24px rgba(24,88,238,.28), 0 6px 22px rgba(0,0,0,.4);
+        }
+        .ps-card-link:hover::before {
+          background: linear-gradient(225deg,
+            rgba(255,255,255,.95)  0%, rgba(65,145,255,1) 30%,
+            rgba(15,45,120,.38)   50%, rgba(90,170,255,1) 80%,
+            rgba(255,255,255,.90) 100%
+          );
+        }
+        .ps-card-link:hover::after { opacity: .58; }
+        .ps-card-link:active { transform: translateY(-1px) scale(.98); }
+
+        .ps-coming-soon {
+          font-size: .68rem; font-weight: 500;
+          color: rgba(255,255,255,.26);
+          letter-spacing: .07em; font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ── RESPONSIVE ────────────────────────────────────────────────── */
+        @media (max-width: 900px) {
+          .ps-grid { grid-template-columns: repeat(2, 1fr); }
+          .ps-grid > * { margin-top: 0 !important; }
+        }
+        @media (max-width: 560px) {
+          .ps-grid { grid-template-columns: 1fr; }
+          .ps-ticker-item { font-size: clamp(.85rem, 3.5vw, 1.1rem); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ps-ticker-track { animation: none; }
+          .ps-card-ring { animation: none; }
+          *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
       `}</style>
 
-      {/* BG layers */}
-      <div className="proj-grid-bg" />
-      <div className="proj-blob pb1" />
-      <div className="proj-blob pb2" />
-      <div className="proj-blob pb3" />
+      {/* Ambient blobs */}
+      <div className="ps-blob-l" aria-hidden="true" />
+      <div className="ps-blob-r" aria-hidden="true" />
 
-      {/* Header */}
-      <motion.div
-        className="proj-header"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <div className="proj-eyebrow"><span /> Selected Work</div>
-        <h2 className="proj-title">Featured <span>Projects</span></h2>
-        <p className="proj-sub">Exploring the boundaries of design &amp; code</p>
-      </motion.div>
+      {/* Top separator */}
+      <div className="ps-topline" />
+       {/* Tech ticker */}
+      <TechTicker />
 
-      {/* Filter */}
-      {!loading && (
-        <motion.div
-          className="filter-bar"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          {categories.map((cat) => (
-            <Pill key={cat} active={filter === cat} onClick={() => setFilter(cat)}>{cat}</Pill>
-          ))}
-        </motion.div>
-      )}
+      {/* Section header */}
+      <SectionHeader />
 
-      {/* Grid */}
-      <div className="proj-grid">
-        <AnimatePresence mode="popLayout">
-          {loading
-            ? [...Array(6)].map((_, i) => <Skeleton key={i} />)
-            : filtered.map((project, idx) => (
-                <motion.div
-                  key={project.name}
-                  layout
-                  initial={{ opacity: 0, y: 32, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <TiltCard className="proj-card">
-                    <div className="card-img-wrap">
-                      <div
-                        className="card-glow"
-                        style={{ background: project.accentColor, filter: "blur(60px)", opacity: 0.16 }}
-                      />
-                      <img src={project.mockup} alt={project.name} className="card-img" loading="lazy" />
-                      <div className="card-num">0{idx + 1}</div>
-                    </div>
+      {/* Top separator */}
+      <div className="ps-topline" />
+  <br /><br /><br />
 
-                    <div className="card-body">
-                      <div className="card-tag"><Layers size={11} /> {project.category}</div>
-                      <h3 className="card-name">{project.name}</h3>
-                      <p className="card-tagline">{project.tagline}</p>
-
-                      <div className="card-review">
-                        <div className="star-row">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} size={12}
-                              fill={i < project.review.rating ? "currentColor" : "none"}
-                              strokeWidth={i < project.review.rating ? 0 : 1.5}
-                            />
-                          ))}
-                        </div>
-                        <p className="review-text">"{project.review.text}"</p>
-                      </div>
-
-                      <div className="card-footer">
-                        <span className="card-year">{project.year}</span>
-                        {project.links.view || project.links.apk ? (
-                          <a
-                            href={project.links.view || project.links.apk}
-                            target="_blank" rel="noreferrer"
-                            className="card-link"
-                          >
-                            View Project <ArrowRight size={14} />
-                          </a>
-                        ) : (
-                          <span className="coming-soon">Case Study Soon</span>
-                        )}
-                      </div>
-                    </div>
-                  </TiltCard>
-                </motion.div>
-              ))}
-        </AnimatePresence>
+      {/* Cards grid */}
+      <div className="ps-grid">
+        {projects.map((project, idx) => (
+          <ProjectCard key={project.name} project={project} idx={idx} />
+        ))}
       </div>
     </section>
   );

@@ -1,25 +1,31 @@
-import Hero from "@/app/section/Hero";
-import Dock from "@/app/section/Dock";
-import Project from "@/app/section/Project";
+// app/page.tsx
 import About from "./section/About";
-import Skills from "./section/Skills";
-import Services from "./section/Services";
-import Work from "./section/Work";
+import MeetMe from "./section/About";
 import Contact from "./section/Contact";
 import Footer from "./section/Footer";
+import Hero from "./section/Hero";
+import Navbar from "./section/Navbar";
+import ProjectsSection from "./section/Project";
+import Services from "./section/Services";
+import TechStack from "./section/Skills";
+import TechThicker from "./section/TechThicker";
+import Testimonials from "./section/Testinomals";
+import HowIWork from "./section/Work";
 
-export default function Home() {
+export default function Page() {
   return (
-    <main>
-      <Hero />                                        {/* no id needed, it's root */}
-      <section id="projects"><Project /></section>
-      <section id="about"><About /></section>
-      <section id="skills"><Skills /></section>
-      <section id="services"><Services /></section>
-      <section id="work"><Work /></section>
-      <section id="contact"><Contact /></section>
+    <>
+      <Navbar />
+      <Hero />
+      <ProjectsSection />
+      <About />
+      <Testimonials />
+      <TechThicker />
+      <Services />
+      <HowIWork />
+      <Contact />
       <Footer />
-      <Dock />
-    </main>
+    
+    </>
   );
 }

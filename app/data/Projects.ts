@@ -117,7 +117,9 @@ export const projects = [
       rating: 5,
       text: "This is exactly what we envisioned. The dark aesthetic matches our brand perfectly.",
     },
-    links: {},
+    links: {
+       view: "https://inkfinitytattoostudio.vercel.app/",
+    },
   },
   {
     name: "Foodify",
@@ -234,6 +236,29 @@ export const projects = [
     },
     links: {
       apk: "https://drive.google.com/file/d/194Axyep1ErMPwziXUIECjy62XMF7u8Zv/view",
+    },
+  },
+  {
+    name: "Tic-Tac-Toe",
+    tagline: "Logic game with minimax AI",
+    desc: "An advanced logic-based game with AI opponent using the minimax algorithm and multiplayer support.",
+    category: "Game",
+    mockup: "/mocups/tictac.png",
+    accentColor: "#fb923c",
+    year: "2023",
+    clientRequirements: [
+      "AI opponent with difficulty levels",
+      "Multiplayer mode",
+      "Smooth animations",
+    ],
+    review: {
+      clientName: "Vikram Nair",
+      clientRole: "Game Publisher",
+      rating: 3,
+      text: "The AI opponent and core mechanics are solid. Multiplayer works well.",
+    },
+    links: {
+      apk: "https://drive.google.com/file/d/1elN4tgYO1cdjd3SYIMAMqrs4rMIwYb6F/view?usp=drive_link",
     },
   },
 ];
