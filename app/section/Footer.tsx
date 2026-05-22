@@ -111,7 +111,7 @@ export default function Footer() {
           width: 100%; height: 100%;
           object-fit: cover;
           pointer-events: none;
-          opacity: .38;
+          opacity: .60;
           filter: saturate(.6) brightness(.55);
         }
 
@@ -390,7 +390,7 @@ export default function Footer() {
           playsInline
           aria-hidden="true"
         >
-          <source src="/bg4.mp4" type="video/mp4" />
+          <source src="/bg2.mp4" type="video/mp4" />
         </video>
 
         <div className="ft-overlay" />

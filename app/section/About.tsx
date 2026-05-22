@@ -432,9 +432,10 @@ export default function About() {
 
   /* Magnetic + ripple buttons */
   const makeMagnetic = useCallback(
-  (ref: React.RefObject<HTMLAnchorElement | null>) => {
+  (ref: { current: HTMLAnchorElement | null }) => {   // ← change this line only
     const btn = ref.current;
     if (!btn) return;
+    // ... rest unchanged
 
     const inner = btn.querySelector<HTMLElement>(".ab-btn-inner");
 
@@ -566,7 +567,7 @@ export default function About() {
             <a href="#contact" className="ab-btn" ref={btn1Ref}>
               <span className="ab-btn-inner">Hire Me</span>
             </a>
-            <a href="/resume.pdf" download className="ab-btn secondary" ref={btn2Ref}>
+            <a href="/Aniket_jamunde_CV.png" download className="ab-btn secondary" ref={btn2Ref}>
               <span className="ab-btn-inner">Download CV</span>
             </a>
           </div>

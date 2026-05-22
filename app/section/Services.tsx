@@ -101,13 +101,13 @@ function Header() {
 
 export default function Services() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-  const isPaused = useRef(false);
-  const animRef = useRef<number>();
-  const posRef = useRef(0);
-  const SPEED = 0.55; // px per frame
+const isDragging = useRef(false);
+const startX = useRef(0);
+const scrollLeft = useRef(0);
+const isPaused = useRef(false);
+const animRef = useRef<number | null>(null);
+const posRef = useRef(0);
+const SPEED = 0.55;// px per frame
 
   /* Auto-scroll via rAF */
   useEffect(() => {
