@@ -1,24 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 
-const TOP_TECH = [
-  "FLUTTER",
-  "NEXT.JS",
-  "REACT",
-  "TYPESCRIPT",
-  "FIREBASE",
-  "SUPABASE",
-];
+/* FONTS: move to app/layout.tsx via next/font — removed the
+   @import here since it was fetching Google Fonts on every mount. */
 
-const BOTTOM_TECH = [
-  "UI/UX",
-  "WEB APPS",
-  "MOBILE APPS",
-  "NODE.JS",
-  "AI TOOLS",
-  "FIGMA",
-];
+const TOP_TECH = ["FLUTTER", "NEXT.JS", "REACT", "TYPESCRIPT", "FIREBASE", "SUPABASE"];
+const BOTTOM_TECH = ["UI/UX", "WEB APPS", "MOBILE APPS", "NODE.JS", "AI TOOLS", "FIGMA"];
 
 export default function TechThicker() {
   const rootRef = useRef<HTMLElement>(null);
@@ -29,40 +17,51 @@ export default function TechThicker() {
     const el = rootRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
       { threshold: 0.12 }
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
+  // static, built once — was re-spread into new arrays on every render before
+  const topLoop = useMemo(() => [...TOP_TECH, ...TOP_TECH, ...TOP_TECH], []);
+  const bottomLoop = useMemo(() => [...BOTTOM_TECH, ...BOTTOM_TECH, ...BOTTOM_TECH], []);
+
   return (
-    <section className="tk-root" ref={rootRef}
+    <section
+      className={`tk-root${visible ? " visible" : ""}`}
+      ref={rootRef}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      aria-label="Technologies and services I work with"
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
         .tk-root {
           position: relative;
           width: 100%;
           height: 320px;
           overflow: hidden;
-          background: #050505;
+          background: #000;
           display: flex;
           align-items: center;
           justify-content: center;
           isolation: isolate;
+          content-visibility: auto;
+          contain-intrinsic-size: 320px;
         }
 
-        /* ── ENTRANCE WIPE ───────────────────────────────────────────────── */
         .tk-entrance-mask {
           position: absolute;
           inset: 0;
           z-index: 20;
           pointer-events: none;
-          background: #050505;
+          background: #000;
           transform-origin: top;
           clip-path: inset(0 0 0% 0);
           transition: clip-path 1.1s cubic-bezier(0.76, 0, 0.24, 1);
@@ -71,7 +70,6 @@ export default function TechThicker() {
           clip-path: inset(0 0 100% 0);
         }
 
-        /* ── AMBIENT BLOBS ───────────────────────────────────────────────── */
         .tk-blob-l {
           position: absolute;
           width: 500px; height: 500px;
@@ -81,6 +79,7 @@ export default function TechThicker() {
           filter: blur(40px);
           animation: tkBlobL 10s ease-in-out infinite;
           pointer-events: none;
+          will-change: transform;
         }
         .tk-blob-r {
           position: absolute;
@@ -91,17 +90,17 @@ export default function TechThicker() {
           filter: blur(40px);
           animation: tkBlobR 12s ease-in-out infinite;
           pointer-events: none;
+          will-change: transform;
         }
         @keyframes tkBlobL {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50%     { transform: translate(40px,20px) scale(1.12); }
+          0%,100% { transform: translate3d(0,0,0) scale(1); }
+          50%     { transform: translate3d(40px,20px,0) scale(1.12); }
         }
         @keyframes tkBlobR {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50%     { transform: translate(-30px,-20px) scale(1.1); }
+          0%,100% { transform: translate3d(0,0,0) scale(1); }
+          50%     { transform: translate3d(-30px,-20px,0) scale(1.1); }
         }
 
-        /* ── SCANLINES ───────────────────────────────────────────────────── */
         .tk-scan {
           position: absolute; inset: 0; pointer-events: none; z-index: 2;
           background: repeating-linear-gradient(
@@ -111,30 +110,31 @@ export default function TechThicker() {
           opacity: .45;
         }
 
-        /* ── CENTER GLOW ─────────────────────────────────────────────────── */
         .tk-center {
-          position: absolute;
-          width: 340px; height: 340px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(80,130,255,.06) 0%, transparent 70%);
-          filter: blur(20px);
-          z-index: 1;
-          animation: tkCenterPulse 6s ease-in-out infinite;
-        }
-        @keyframes tkCenterPulse {
-          0%,100% { transform: scale(1); opacity: .6; }
-          50%     { transform: scale(1.2); opacity: 1; }
-        }
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80,130,255,.06) 0%, transparent 70%);
+  filter: blur(20px);
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  animation: tkCenterPulse 6s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@keyframes tkCenterPulse {
+  0%,100% { transform: translate(-50%, -50%) scale(1);   opacity: .6; }
+  50%     { transform: translate(-50%, -50%) scale(1.2); opacity: 1;  }
+}
 
-        /* ── EDGE FADE ───────────────────────────────────────────────────── */
         .tk-fade-l, .tk-fade-r {
           position: absolute; top: 0; bottom: 0; width: clamp(60px,12vw,160px);
           z-index: 10; pointer-events: none;
         }
-        .tk-fade-l { left: 0; background: linear-gradient(to right, #050505 0%, transparent 100%); }
-        .tk-fade-r { right: 0; background: linear-gradient(to left, #050505 0%, transparent 100%); }
+        .tk-fade-l { left: 0; background: linear-gradient(to right, #000 0%, transparent 100%); }
+        .tk-fade-r { right: 0; background: linear-gradient(to left, #000 0%, transparent 100%); }
 
-        /* ── ROWS ────────────────────────────────────────────────────────── */
         .tk-row {
           position: absolute;
           width: 200%;
@@ -143,17 +143,15 @@ export default function TechThicker() {
           overflow: visible;
           z-index: 3;
         }
-        .tk-row.top    { transform: rotate(-13deg); top: 28%; }
-        .tk-row.bottom { transform: rotate(13deg);  bottom: 28%; }
-
-        /* Entrance animations per row */
         .tk-row.top {
+          top: 28%;
           opacity: 0;
           transform: rotate(-13deg) translateX(-60px);
           transition: opacity .9s cubic-bezier(.16,1,.3,1) .15s,
                       transform .9s cubic-bezier(.16,1,.3,1) .15s;
         }
         .tk-row.bottom {
+          bottom: 28%;
           opacity: 0;
           transform: rotate(13deg) translateX(60px);
           transition: opacity .9s cubic-bezier(.16,1,.3,1) .28s,
@@ -173,22 +171,23 @@ export default function TechThicker() {
           width: max-content;
           animation: tkScroll var(--dur, 28s) linear infinite;
           animation-play-state: var(--play-state, running);
+          will-change: transform;
+          backface-visibility: hidden;
         }
         .tk-track.reverse { animation-direction: reverse; }
 
         @keyframes tkScroll {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-33.333%); }
+          from { transform: translate3d(0,0,0); }
+          to   { transform: translate3d(-33.333%,0,0); }
         }
 
-        /* ── ITEM ────────────────────────────────────────────────────────── */
         .tk-item {
           position: relative;
           margin: 0 14px;
           padding: 22px 34px;
           border-radius: 22px;
           white-space: nowrap;
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans, 'DM Sans'), sans-serif;
           font-size: clamp(1rem, 1.7vw, 1.4rem);
           font-weight: 600;
           letter-spacing: -0.03em;
@@ -204,9 +203,9 @@ export default function TechThicker() {
             box-shadow .4s ease,
             color .3s ease;
           cursor: default;
+          contain: layout paint;
         }
 
-        /* Gradient border */
         .tk-item::before {
           content: '';
           position: absolute; inset: -1px;
@@ -223,7 +222,6 @@ export default function TechThicker() {
           opacity: .42; transition: opacity .4s ease, background .4s ease;
         }
 
-        /* Shimmer */
         .tk-item::after {
           content: '';
           position: absolute; top: 0; left: -120%;
@@ -233,7 +231,6 @@ export default function TechThicker() {
           transition: left .7s ease;
         }
 
-        /* Hover */
         .tk-item:hover {
           transform: translateY(-10px) scale(1.1);
           border-color: rgba(100,160,255,.28);
@@ -255,7 +252,6 @@ export default function TechThicker() {
         }
         .tk-item:hover::after { left: 140%; }
 
-        /* Glitch on select items */
         .tk-item.glitch {
           animation: tkGlitch 7s ease-in-out infinite;
         }
@@ -267,12 +263,11 @@ export default function TechThicker() {
           96% { transform: none; }
         }
 
-        /* ── MOBILE ──────────────────────────────────────────────────────── */
         @media (max-width: 768px) {
           .tk-root { height: 240px; }
           .tk-item { padding: 16px 22px; margin: 0 10px; font-size: .9rem; }
-          .tk-row.top    { transform: rotate(-10deg); }
-          .tk-row.bottom { transform: rotate(10deg); }
+          .tk-row.top    { transform: rotate(-10deg) translateX(-60px); }
+          .tk-row.bottom { transform: rotate(10deg) translateX(60px); }
           .tk-root.visible .tk-row.top    { transform: rotate(-10deg) translateX(0); }
           .tk-root.visible .tk-row.bottom { transform: rotate(10deg) translateX(0); }
         }
@@ -282,6 +277,7 @@ export default function TechThicker() {
             animation-duration: .01ms !important;
             transition-duration: .01ms !important;
           }
+          .tk-track { animation: none; }
         }
       `}</style>
 
@@ -290,15 +286,35 @@ export default function TechThicker() {
 
       <div className="tk-blob-l" aria-hidden="true" />
       <div className="tk-blob-r" aria-hidden="true" />
-      <div className="tk-scan"   aria-hidden="true" />
+      <div className="tk-scan" aria-hidden="true" />
       <div className="tk-center" aria-hidden="true" />
       <div className="tk-fade-l" aria-hidden="true" />
       <div className="tk-fade-r" aria-hidden="true" />
 
+      {/* SEO: real, crawlable, screen-reader-readable list of the
+          technologies — the marquee itself is aria-hidden below
+          since it's a decorative, duplicated, infinite-scroll effect. */}
+      <ul className="sr-only">
+        {[...TOP_TECH, ...BOTTOM_TECH].map((t) => (
+          <li key={t}>{t}</li>
+        ))}
+      </ul>
+      <style>{`
+        .sr-only {
+          position: absolute; width: 1px; height: 1px;
+          padding: 0; margin: -1px; overflow: hidden;
+          clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+        }
+      `}</style>
+
       {/* TOP row — scrolls left */}
-      <div className="tk-row top" style={{ "--play-state": paused ? "paused" : "running" } as React.CSSProperties}>
+      <div
+        className="tk-row top"
+        style={{ "--play-state": paused ? "paused" : "running" } as React.CSSProperties}
+        aria-hidden="true"
+      >
         <div className="tk-track" style={{ "--dur": "32s" } as React.CSSProperties}>
-          {[...TOP_TECH, ...TOP_TECH, ...TOP_TECH].map((item, i) => (
+          {topLoop.map((item, i) => (
             <div
               key={i}
               className={`tk-item${i % 3 === 0 ? " glitch" : ""}`}
@@ -311,9 +327,13 @@ export default function TechThicker() {
       </div>
 
       {/* BOTTOM row — scrolls right */}
-      <div className="tk-row bottom" style={{ "--play-state": paused ? "paused" : "running" } as React.CSSProperties}>
+      <div
+        className="tk-row bottom"
+        style={{ "--play-state": paused ? "paused" : "running" } as React.CSSProperties}
+        aria-hidden="true"
+      >
         <div className="tk-track reverse" style={{ "--dur": "28s" } as React.CSSProperties}>
-          {[...BOTTOM_TECH, ...BOTTOM_TECH, ...BOTTOM_TECH].map((item, i) => (
+          {bottomLoop.map((item, i) => (
             <div
               key={i}
               className={`tk-item${i % 4 === 1 ? " glitch" : ""}`}
@@ -324,19 +344,6 @@ export default function TechThicker() {
           ))}
         </div>
       </div>
-
-      {/* Invisible class toggle for CSS entrance */}
-      <style>{`.tk-root${visible ? ".visible" : ""}{}`}</style>
-      {visible && (
-        <style>{`
-          .tk-root .tk-row.top { opacity: 1 !important; transform: rotate(-13deg) translateX(0) !important; }
-          .tk-root .tk-row.bottom { opacity: 1 !important; transform: rotate(13deg) translateX(0) !important; }
-          @media(max-width:768px){
-            .tk-root .tk-row.top { transform: rotate(-10deg) translateX(0) !important; }
-            .tk-root .tk-row.bottom { transform: rotate(10deg) translateX(0) !important; }
-          }
-        `}</style>
-      )}
     </section>
   );
 }

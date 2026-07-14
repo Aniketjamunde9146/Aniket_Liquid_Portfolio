@@ -87,7 +87,7 @@ export default function Navbar() {
           transition: transform .4s cubic-bezier(.25,1,.5,1), box-shadow .4s ease;
         }
         .nb-cta::before {
-          content: ''; position: absolute; inset: -1px; border-radius: 13px; padding: 1.5px;
+          content: ''; position: absolute; inset: -1px; border-radius: 13px; padding: 2.5px;
           background: linear-gradient(135deg, rgba(255,255,255,.65) 0%, rgba(40,110,250,.75) 30%, rgba(10,30,80,.15) 50%, rgba(45,120,255,.85) 75%, rgba(255,255,255,.55) 100%);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;

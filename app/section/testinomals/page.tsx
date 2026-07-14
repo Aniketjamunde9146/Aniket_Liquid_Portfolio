@@ -1,19 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import Script from "next/script";
+
+/* ─────────────────────────────────────────────────────────────
+   FONTS: move to app/layout.tsx via next/font (see earlier files)
+   — removed the @import here; it was fetching Google Fonts on
+   every mount of this component and blocking first paint.
+───────────────────────────────────────────────────────────── */
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
   .tm-wrap {
     position:relative; background:#000; overflow:hidden;
     padding:clamp(5rem,10vh,8rem) 0 clamp(5rem,9vh,7rem); isolation:isolate;
+    content-visibility:auto;
+    contain-intrinsic-size: 1100px;
   }
 
   .tm-grain-a,.tm-grain-b,.tm-grain-c{
     position:absolute;inset:0;z-index:1;pointer-events:none;
     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     background-size:180px 180px;mix-blend-mode:overlay;
+    will-change:background-position;
   }
   .tm-grain-a{opacity:.055;animation:tmGrainA .18s steps(1) infinite}
   .tm-grain-b{opacity:.030;animation:tmGrainB .22s steps(1) infinite;filter:hue-rotate(40deg)}
@@ -34,6 +42,7 @@ const css = `
     left:-10%;top:5%;border-radius:50%;
     background:radial-gradient(circle,rgba(100,30,255,.07) 0%,transparent 68%);
     animation:tmBlobPulse 9s ease-in-out infinite;
+    will-change:transform,opacity;
   }
   .tm-blob-r{
     position:absolute;z-index:0;pointer-events:none;
@@ -41,6 +50,7 @@ const css = `
     right:-8%;bottom:8%;border-radius:50%;
     background:radial-gradient(circle,rgba(30,80,255,.08) 0%,transparent 68%);
     animation:tmBlobPulse 7s ease-in-out infinite reverse;
+    will-change:transform,opacity;
   }
   @keyframes tmBlobPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.7}}
 
@@ -56,11 +66,10 @@ const css = `
     display:flex;flex-direction:column;align-items:center;
   }
 
-  /* ── HEADING ─────────────────────────────────────────────────────────── */
   .tm-head{text-align:center;max-width:660px;margin-bottom:clamp(2.5rem,5vw,4rem)}
 
   .tm-eyebrow{
-    font-family:'DM Sans',sans-serif;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;
     font-size:clamp(.6rem,.85vw,.7rem);font-weight:400;
     color:rgba(255,255,255,.22);letter-spacing:.38em;text-transform:uppercase;
     margin-bottom:.9rem;
@@ -71,7 +80,7 @@ const css = `
 
   .tm-title-wrap{position:relative;display:inline-block;margin:0 0 clamp(.9rem,1.8vw,1.3rem)}
   .tm-title{
-    font-family:'DM Sans',sans-serif;font-weight:700;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:700;
     font-size:clamp(2.4rem,5.5vw,4.8rem);
     color:#fff;letter-spacing:-.035em;line-height:1.06;
     margin:0;
@@ -88,7 +97,7 @@ const css = `
   .tm-title-line.show{width:100%}
 
   .tm-desc{
-    font-family:'DM Sans',sans-serif;font-weight:400;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:400;
     font-size:clamp(.86rem,1.15vw,1rem);
     color:rgba(255,255,255,.38);line-height:1.80;
     opacity:0;transform:translateY(16px);
@@ -120,16 +129,21 @@ const css = `
   .tm-belt{
     display:flex;gap:1.5rem;
     width:max-content;
+    /* translate3d forces GPU compositing instead of layout-thread
+       animation — this is the #1 fix for the belt feeling laggy,
+       especially on mid-range mobile devices */
     animation:tmScroll var(--belt-dur, 40s) linear infinite;
     will-change:transform;
+    transform:translate3d(0,0,0);
+    backface-visibility:hidden;
   }
   .tm-belt.paused{animation-play-state:paused}
   @keyframes tmScroll{
-    0%  {transform:translateX(0)}
-    100%{transform:translateX(var(--belt-shift,-50%))}
+    0%  {transform:translate3d(0,0,0)}
+    100%{transform:translate3d(var(--belt-shift,-50%),0,0)}
   }
 
-  /* ── CARD — clip-path reveal on hover-in ─────────────────────────────── */
+  /* ── CARD ────────────────────────────────────────────────────────────── */
   .tm-card{
     position:relative;
     flex:0 0 clamp(290px,38vw,400px);
@@ -140,6 +154,7 @@ const css = `
     border:1px solid transparent;
     cursor:default;
     transition:box-shadow .3s ease,transform .3s cubic-bezier(.25,1,.5,1);
+    contain:layout paint;
   }
   .tm-card::before{
     content:'';position:absolute;inset:-1px;border-radius:19px;padding:1.5px;
@@ -170,7 +185,6 @@ const css = `
   .tm-c-emerald{--card-a:rgba(52,211,153,.85);--card-b:rgba(16,185,129,.90)}
   .tm-c-orange{--card-a:rgba(255,150,50,.85);--card-b:rgba(255,130,30,.90)}
 
-  /* ── STARS ───────────────────────────────────────────────────────────── */
   .tm-stars{display:flex;gap:.3rem;margin-bottom:1.1rem}
   .tm-star{
     width:14px;height:14px;
@@ -182,43 +196,42 @@ const css = `
   .tm-card:hover .tm-star{opacity:1;transform:scale(1) rotate(0deg)}
 
   .tm-quote-mark{
-    font-family:'DM Sans',sans-serif;font-size:3.5rem;font-weight:700;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-size:3.5rem;font-weight:700;
     line-height:0.7;color:var(--card-b,rgba(45,120,255,.50));
     margin-bottom:.5rem;display:block;
   }
   .tm-quote{
-    font-family:'DM Sans',sans-serif;font-weight:400;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:400;
     font-size:clamp(.88rem,1.1vw,.96rem);
     color:rgba(255,255,255,.68);line-height:1.75;
     margin:0 0 1.6rem;
   }
 
-  /* ── AUTHOR ──────────────────────────────────────────────────────────── */
   .tm-author{display:flex;align-items:center;gap:.9rem}
   .tm-avatar{
     width:42px;height:42px;border-radius:50%;
     border:1.5px solid rgba(255,255,255,.14);
     display:flex;align-items:center;justify-content:center;
-    font-family:'DM Sans',sans-serif;font-weight:700;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:700;
     font-size:.9rem;color:#fff;flex-shrink:0;
     background:linear-gradient(135deg,var(--card-a,rgba(40,100,230,.60)),var(--card-b,rgba(45,120,255,.80)));
   }
   .tm-author-info{display:flex;flex-direction:column;gap:.18rem}
   .tm-author-name{
-    font-family:'DM Sans',sans-serif;font-weight:600;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:600;
     font-size:.88rem;color:rgba(255,255,255,.90);
   }
   .tm-author-role{
-    font-family:'DM Sans',sans-serif;font-weight:400;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:400;
     font-size:.74rem;color:rgba(255,255,255,.32);letter-spacing:.04em;
   }
 
-  /* ── PAUSE INDICATOR ─────────────────────────────────────────────────── */
   .tm-pause-pill{
     display:inline-flex;align-items:center;gap:.5rem;
-    font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:500;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-size:.7rem;font-weight:500;
     color:rgba(255,255,255,.28);letter-spacing:.18em;text-transform:uppercase;
     margin-bottom:clamp(1.5rem,3vw,2.5rem);
+    height:1.1rem;
     opacity:0;transform:scale(.9);
     transition:opacity .3s ease,transform .3s ease;
     pointer-events:none;
@@ -231,7 +244,6 @@ const css = `
   }
   @keyframes tmPausePulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 
-  /* ── CTA BUTTON — magnetic ───────────────────────────────────────────── */
   .tm-btns{
     display:flex;flex-wrap:wrap;gap:1.4rem;justify-content:center;
     opacity:0;transform:translateY(22px);
@@ -241,7 +253,7 @@ const css = `
 
   .tm-btn{
     position:relative;
-    font-family:'DM Sans',sans-serif;font-weight:500;
+    font-family:var(--font-dm-sans, 'DM Sans'),sans-serif;font-weight:500;
     font-size:clamp(.84rem,1.1vw,.95rem);
     padding:.65rem 2.6rem;border-radius:12px;
     text-decoration:none;display:inline-flex;
@@ -251,6 +263,7 @@ const css = `
     background:linear-gradient(180deg,rgba(7,18,40,.56) 0%,rgba(3,8,19,.13) 100%);
     border:1px solid transparent;
     transition:transform .4s cubic-bezier(.25,1,.5,1),box-shadow .4s ease,color .3s ease;
+    min-height:44px;
   }
   .tm-btn-inner{position:relative;z-index:1;display:block;pointer-events:none;transition:transform .4s cubic-bezier(.25,1,.5,1)}
   .tm-btn-ripple{
@@ -278,6 +291,7 @@ const css = `
   .tm-btn:hover::before{background:linear-gradient(225deg,rgba(255,255,255,.95) 0%,rgba(65,145,255,1.00) 30%,rgba(15,45,120,.38) 50%,rgba(90,170,255,1.00) 80%,rgba(255,255,255,.90) 100%)}
   .tm-btn:hover::after{opacity:.58}
   .tm-btn:active{transform:translateY(-1px) scale(.98) !important}
+  .tm-btn:focus-visible{outline:2px solid rgba(90,160,255,.9);outline-offset:3px}
 
   @media(max-width:640px){
     .tm-card{flex:0 0 clamp(260px,80vw,320px)}
@@ -286,6 +300,7 @@ const css = `
   }
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    .tm-belt{animation:none}
   }
 `;
 
@@ -302,13 +317,40 @@ const TESTIMONIALS = [
   { id:9, color:"tm-c-orange",  stars:3, quote:"The AI opponent and core mechanics are solid. Multiplayer works well.", name:"Vikram Nair", role:"Game Publisher · Dots & Boxes", initials:"VN" },
 ];
 
-const LOOP_CARDS = [...TESTIMONIALS, ...TESTIMONIALS];
+/* SEO: Review + AggregateRating structured data — lets Google show
+   star ratings directly in search results for this page. */
+function buildTestimonialsJsonLd() {
+  const avg =
+    TESTIMONIALS.reduce((sum, t) => sum + t.stars, 0) / TESTIMONIALS.length;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Aniket Jamunde",
+    jobTitle: "Web & Flutter Developer",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: avg.toFixed(1),
+      reviewCount: TESTIMONIALS.length,
+    },
+    review: TESTIMONIALS.map((t) => ({
+      "@type": "Review",
+      reviewRating: { "@type": "Rating", ratingValue: t.stars, bestRating: 5 },
+      author: { "@type": "Person", name: t.name },
+      reviewBody: t.quote,
+    })),
+  };
+}
 
 function Stars({ count }: { count: number }) {
   return (
-    <div className="tm-stars" aria-label={`${count} out of 5 stars`}>
+    <div className="tm-stars" aria-label={`Rated ${count} out of 5 stars`}>
       {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="tm-star" style={{ "--star-delay": `${i * 0.06}s` } as React.CSSProperties} />
+        <div
+          key={i}
+          className="tm-star"
+          style={{ "--star-delay": `${i * 0.06}s` } as React.CSSProperties}
+          aria-hidden="true"
+        />
       ))}
     </div>
   );
@@ -316,17 +358,27 @@ function Stars({ count }: { count: number }) {
 
 export default function Testimonials() {
   const [visible, setVisible] = useState(false);
-  const [paused, setPaused]   = useState(false);
+  const [paused, setPaused] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
-  const beltRef    = useRef<HTMLDivElement>(null);
-  const btnRef     = useRef<HTMLAnchorElement>(null);
+  const beltRef = useRef<HTMLUListElement>(null);
+  const btnRef = useRef<HTMLAnchorElement>(null);
+
+  // was rebuilt (spread into a new array) on every render before —
+  // now computed once since TESTIMONIALS never changes
+  const loopCards = useMemo(() => [...TESTIMONIALS, ...TESTIMONIALS], []);
+  const jsonLd = useMemo(() => buildTestimonialsJsonLd(), []);
 
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVisible(true);
+          obs.disconnect();
+        }
+      },
       { threshold: 0.08 }
     );
     obs.observe(el);
@@ -337,59 +389,90 @@ export default function Testimonials() {
     const belt = beltRef.current;
     if (!belt) return;
     const SPEED = 55;
-    const totalW = belt.scrollWidth / 2;
-    const dur = totalW / SPEED;
-    belt.style.setProperty("--belt-dur", `${dur}s`);
-    belt.style.setProperty("--belt-shift", "-50%");
+    // rAF instead of running scrollWidth measurement synchronously
+    // on mount — avoids forcing a layout reflow before first paint
+    const id = requestAnimationFrame(() => {
+      const totalW = belt.scrollWidth / 2;
+      const dur = totalW / SPEED;
+      belt.style.setProperty("--belt-dur", `${dur}s`);
+      belt.style.setProperty("--belt-shift", "-50%");
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
-  const pause  = useCallback(() => setPaused(true),  []);
+  const pause = useCallback(() => setPaused(true), []);
   const resume = useCallback(() => setPaused(false), []);
 
-  /* Magnetic CTA */
   useEffect(() => {
-    const btn = btnRef.current; if(!btn) return;
+    const btn = btnRef.current;
+    if (!btn) return;
     const inner = btn.querySelector<HTMLElement>(".tm-btn-inner");
+
     const onMove = (e: MouseEvent) => {
-      const r=btn.getBoundingClientRect();
-      const dx=(e.clientX-r.left-r.width/2)*.3;
-      const dy=(e.clientY-r.top-r.height/2)*.3;
-      btn.style.transform=`translate(${dx}px,${dy}px) scale(1.04)`;
-      if(inner) inner.style.transform=`translate(${dx*.55}px,${dy*.55}px)`;
+      const r = btn.getBoundingClientRect();
+      const dx = (e.clientX - r.left - r.width / 2) * 0.3;
+      const dy = (e.clientY - r.top - r.height / 2) * 0.3;
+      btn.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
+      if (inner) inner.style.transform = `translate(${dx * 0.55}px,${dy * 0.55}px)`;
     };
-    const onLeave=()=>{btn.style.transform="";if(inner) inner.style.transform="";};
-    const onClick=(e:MouseEvent)=>{
-      const r=btn.getBoundingClientRect();
-      const rp=document.createElement("span"); rp.className="tm-btn-ripple";
-      const s=Math.max(r.width,r.height);
-      rp.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;
-      btn.appendChild(rp); rp.addEventListener("animationend",()=>rp.remove());
+    const onLeave = () => {
+      btn.style.transform = "";
+      if (inner) inner.style.transform = "";
     };
-    btn.addEventListener("mousemove",onMove);
-    btn.addEventListener("mouseleave",onLeave);
-    btn.addEventListener("click",onClick);
-    return ()=>{btn.removeEventListener("mousemove",onMove);btn.removeEventListener("mouseleave",onLeave);btn.removeEventListener("click",onClick)};
+    const onClick = (e: MouseEvent) => {
+      const r = btn.getBoundingClientRect();
+      const rp = document.createElement("span");
+      rp.className = "tm-btn-ripple";
+      const s = Math.max(r.width, r.height);
+      rp.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX - r.left - s / 2}px;top:${e.clientY - r.top - s / 2}px`;
+      btn.appendChild(rp);
+      rp.addEventListener("animationend", () => rp.remove());
+    };
+
+    btn.addEventListener("mousemove", onMove);
+    btn.addEventListener("mouseleave", onLeave);
+    btn.addEventListener("click", onClick);
+    return () => {
+      btn.removeEventListener("mousemove", onMove);
+      btn.removeEventListener("mouseleave", onLeave);
+      btn.removeEventListener("click", onClick);
+    };
   }, [visible]);
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
-      <section id="testimonials" ref={sectionRef} className="tm-wrap">
+      {/* SEO: aggregate rating + individual reviews structured data */}
+      <Script
+        id="testimonials-jsonld"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <section
+        id="testimonials"
+        ref={sectionRef}
+        className="tm-wrap"
+        aria-labelledby="testimonials-heading"
+      >
         <div className="tm-topline" />
         <div className="tm-blob-l" aria-hidden="true" />
         <div className="tm-blob-r" aria-hidden="true" />
         <div className="tm-grain-a" aria-hidden="true" />
         <div className="tm-grain-b" aria-hidden="true" />
         <div className="tm-grain-c" aria-hidden="true" />
-        <div className="tm-scan"    aria-hidden="true" />
+        <div className="tm-scan" aria-hidden="true" />
 
         <div className="tm-inner">
           <div className="tm-head">
             <p className={`tm-eyebrow${visible ? " show" : ""}`}>Client Love</p>
             <div className="tm-title-wrap">
-              <h2 className={`tm-title${visible ? " show" : ""}`}>What People Say</h2>
-              <div className={`tm-title-line${visible ? " show" : ""}`}/>
+              <h2 id="testimonials-heading" className={`tm-title${visible ? " show" : ""}`}>
+                What People Say
+              </h2>
+              <div className={`tm-title-line${visible ? " show" : ""}`} />
             </div>
             <p className={`tm-desc${visible ? " show" : ""}`}>
               Real feedback from founders, product leads, and teams I&apos;ve shipped with.
@@ -407,12 +490,9 @@ export default function Testimonials() {
           onTouchEnd={resume}
         >
           <div className="tm-belt-wrap">
-            <div
-              ref={beltRef}
-              className={`tm-belt${paused ? " paused" : ""}`}
-            >
-              {LOOP_CARDS.map((t, i) => (
-                <div
+            <ul ref={beltRef} className={`tm-belt${paused ? " paused" : ""}`}>
+              {loopCards.map((t, i) => (
+                <li
                   key={`${t.id}-${i}`}
                   className={`tm-card ${t.color}`}
                   aria-hidden={i >= TESTIMONIALS.length ? "true" : undefined}
@@ -421,26 +501,24 @@ export default function Testimonials() {
                   <span className="tm-quote-mark" aria-hidden="true">&ldquo;</span>
                   <p className="tm-quote">{t.quote}</p>
                   <div className="tm-author">
-                    <div className="tm-avatar">{t.initials}</div>
+                    <div className="tm-avatar" aria-hidden="true">{t.initials}</div>
                     <div className="tm-author-info">
                       <span className="tm-author-name">{t.name}</span>
                       <span className="tm-author-role">{t.role}</span>
                     </div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </div>
 
         <div className="tm-inner">
-          {/* Paused indicator */}
           <div className={`tm-pause-pill${paused ? " visible" : ""}`} aria-live="polite">
-            <span className="tm-pause-dot" />
+            <span className="tm-pause-dot" aria-hidden="true" />
             Paused
           </div>
 
-          {/* Magnetic CTA */}
           <div className={`tm-btns${visible ? " show" : ""}`}>
             <a href="#contact" className="tm-btn" ref={btnRef}>
               <span className="tm-btn-inner">Work With Me</span>

@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
+import Script from "next/script";
 import { ArrowRight } from "lucide-react";
-import { projects } from "../data/Projects";
+import { projects } from "../../data/Projects";
 
 /* ─────────────────────────────────────────────────────────────
    TILT CARD
@@ -59,6 +60,10 @@ const TiltCard = ({ children, className }: { children: React.ReactNode; classNam
 
 /* ─────────────────────────────────────────────────────────────
    PROJECT CARD
+   Rendered as a semantic <article> with a real heading for the
+   project name (was a plain <span> before) — search engines and
+   screen readers get an actual content hierarchy instead of a
+   div soup, and alt text now carries the tagline too.
 ───────────────────────────────────────────────────────────── */
 const ProjectCard = ({ project, idx }: { project: any; idx: number }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -83,44 +88,60 @@ const ProjectCard = ({ project, idx }: { project: any; idx: number }) => {
     return () => io.disconnect();
   }, [colPos]);
 
+  const href = project.links.view || project.links.apk;
+  const imgAlt = project.tagline
+    ? `${project.name} — ${project.tagline} project screenshot`
+    : `${project.name} project screenshot`;
+
   return (
     <div
       ref={ref}
       style={{ marginTop: isMiddle ? -44 : 0, opacity: 0, transform: "translateY(56px) scale(0.95)" }}
     >
       <TiltCard className="ps-card">
-        <div className="ps-card-ring" />
-        <img src={project.mockup} alt={project.name} className="ps-card-img" loading="lazy" />
-        <div className="ps-card-scanlines" />
+        <article>
+          <div className="ps-card-ring" />
+          <img
+            src={project.mockup}
+            alt={imgAlt}
+            className="ps-card-img"
+            loading="lazy"
+            decoding="async"
+            width={800}
+            height={500}
+          />
+          <div className="ps-card-scanlines" />
 
-        {/* Bottom strip — project name, always visible */}
-        <div className="ps-card-strip">
-          <span className="ps-card-num">0{idx + 1}</span>
-          <span className="ps-card-name">{project.name}</span>
-        </div>
-
-        {/* Hover overlay */}
-        <div className="ps-card-overlay">
-          <div className="ps-card-overlay-inner">
-            {project.desc && (
-              <p className="ps-card-desc">{project.desc}</p>
-            )}
-            {project.links.view || project.links.apk ? (
-              <a
-                href={project.links.view || project.links.apk}
-                target="_blank"
-                rel="noreferrer"
-                className="ps-card-link"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span>View Project</span>
-                <ArrowRight size={13} />
-              </a>
-            ) : (
-              <span className="ps-coming-soon">Case Study Soon</span>
-            )}
+          {/* Bottom strip — project name, always visible */}
+          <div className="ps-card-strip">
+            <span className="ps-card-num" aria-hidden="true">0{idx + 1}</span>
+            <h3 className="ps-card-name">{project.name}</h3>
           </div>
-        </div>
+
+          {/* Hover overlay */}
+          <div className="ps-card-overlay">
+            <div className="ps-card-overlay-inner">
+              {project.desc && (
+                <p className="ps-card-desc">{project.desc}</p>
+              )}
+              {href ? (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ps-card-link"
+                  aria-label={`View ${project.name} — opens in a new tab`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span>View Project</span>
+                  <ArrowRight size={13} />
+                </a>
+              ) : (
+                <span className="ps-coming-soon">Case Study Soon</span>
+              )}
+            </div>
+          </div>
+        </article>
       </TiltCard>
     </div>
   );
@@ -177,12 +198,35 @@ const SectionHeader = () => {
   );
 };
 
+
+function buildProjectsJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Selected Work — Aniket Jamunde",
+    description:
+      "A curated collection of web and mobile experiences built by Aniket Jamunde.",
+    itemListElement: projects.map((p, i) => {
+      const url = p.links?.view || p.links?.apk;
+      const item: Record<string, unknown> = {
+        "@type": "CreativeWork",
+        position: i + 1,
+        name: p.name,
+        description: p.desc,
+      };
+      if (url) item.url = url;
+      if (p.mockup) item.image = p.mockup;
+      return { "@type": "ListItem", position: i + 1, item };
+    }),
+  };
+}
+
 /* ═══════════════════════════════════════════════════════════
    PROJECTS SECTION
 ═══════════════════════════════════════════════════════════ */
 export default function ProjectsSection() {
   return (
-    <section id="projects" className="ps-root">
+    <section id="projects" className="ps-root" aria-labelledby="ps-heading">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
@@ -340,6 +384,9 @@ export default function ProjectsSection() {
           border-color: rgba(255,255,255,.14);
           box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(80,140,255,.08);
         }
+        .ps-card article {
+          position: absolute; inset: 0;
+        }
 
         /* Spinning ring border */
         @property --psAngle {
@@ -410,6 +457,7 @@ export default function ProjectsSection() {
         .ps-card-name {
           font-size: .8rem; font-weight: 400;
           letter-spacing: -.01em; color: rgba(255,255,255,.72);
+          margin: 0; font-family: 'DM Sans', sans-serif;
         }
 
         /* Hover overlay */
@@ -509,6 +557,13 @@ export default function ProjectsSection() {
         }
       `}</style>
 
+   <Script
+        id="projects-jsonld"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildProjectsJsonLd()) }}
+      />
+
       {/* Ambient blobs */}
       <div className="ps-blob-l" aria-hidden="true" />
       <div className="ps-blob-r" aria-hidden="true" />
@@ -519,7 +574,9 @@ export default function ProjectsSection() {
       <TechTicker />
 
       {/* Section header */}
-      <SectionHeader />
+      <div id="ps-heading">
+        <SectionHeader />
+      </div>
 
       {/* Top separator */}
       <div className="ps-topline" />

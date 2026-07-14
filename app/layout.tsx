@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description:
     "Aniket Jamunde is a self-taught Flutter & web developer from Chh. Sambhajinagar, Maharashtra — crafting high-performance cross-platform mobile apps with Flutter & Dart, and blazing-fast modern websites with React & Next.js. Firebase for real-time backends. Available for freelance projects across India and worldwide.",
   keywords: [
-    // 🎯 Flutter
+  
     "Flutter developer",
     "Flutter developer India",
     "Flutter developer Maharashtra",

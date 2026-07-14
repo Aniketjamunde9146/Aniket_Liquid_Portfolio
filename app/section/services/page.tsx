@@ -107,7 +107,7 @@ const scrollLeft = useRef(0);
 const isPaused = useRef(false);
 const animRef = useRef<number | null>(null);
 const posRef = useRef(0);
-const SPEED = 0.55;// px per frame
+const SPEED = 3.50;// px per frame
 
   /* Auto-scroll via rAF */
   useEffect(() => {

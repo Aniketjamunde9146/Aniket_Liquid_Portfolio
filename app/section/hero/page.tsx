@@ -199,8 +199,8 @@ const styles = `
   /* ── BUTTONS ─────────────────────────────────────────────────────────── */
   .hr-btns {
     display: flex; flex-wrap: wrap; gap: 1.4rem; justify-content: center;
-    margin-top: clamp(2rem, 4vw, 2.8rem);
-    opacity: 0; transform: translateY(28px);
+    margin-top: clamp(4rem, 4vw, 2.8rem);
+    opacity: 40; transform: translateY(28px);
     transition: opacity 0.9s ease, transform 0.9s ease;
   }
   .hr-btns.show { opacity: 1; transform: translateY(0); }
@@ -209,14 +209,14 @@ const styles = `
     position: relative;
     font-family: 'DM Sans', sans-serif; font-weight: 500;
     font-size: clamp(0.84rem, 1.1vw, 0.95rem);
-    padding: 0.95rem 2.6rem; border-radius: 12px;
+    padding: 0.95rem 2.6rem; border-radius: 18px;
     text-decoration: none;
     display: inline-flex; align-items: center; justify-content: center;
     gap: 0.5rem; cursor: pointer; overflow: hidden;
     color: #fff;
-    background: linear-gradient(180deg, rgba(7,18,40,0.56) 0%, rgba(3,8,19,0.13) 100%);
+    background: linear-gradient(180deg, rgba(7, 18, 40, 0.14) 0%, rgba(3, 8, 19, 0.11) 100%);
     border: 1px solid transparent;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease, color 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.5, 1, 0.5, 1), box-shadow 0.4s ease, color 0.3s ease;
   }
   .hr-btn-inner {
     position: relative; z-index: 1;
@@ -232,10 +232,10 @@ const styles = `
   @keyframes btnRipple { to { transform: scale(4); opacity: 0; } }
 
   .hr-btn::before {
-    content: ''; position: absolute; inset: -1px; border-radius: 13px; padding: 1.5px;
+    content: ''; position: absolute; inset: -1px; border-radius: 20px; padding: 2.5px;
     background: linear-gradient(135deg,
-      rgba(255,255,255,0.70)  0%, rgba(40,110,250,0.80)  25%,
-      rgba(10,30,80,0.18)    50%, rgba(45,120,255,0.90)  75%,
+      rgba(255,255,255,0.70)  0%, rgba(40, 138, 250, 0.8)  25%,
+      rgba(10,30,80,0.18)    50%, rgba(178, 45, 255, 0.51)  75%,
       rgba(255,255,255,0.60) 100%
     );
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -249,7 +249,7 @@ const styles = `
   }
   .hr-btn:hover {
     color: rgba(255,255,255,0.96);
-    box-shadow: inset 0 0 18px rgba(45,125,255,0.55), 0 0 28px rgba(24,88,238,0.30), 0 8px 28px rgba(0,0,0,0.40);
+    box-shadow: inset 0 0 18px rgba(45, 83, 255, 0.55), 0 0 28px rgba(24,88,238,0.30), 0 8px 28px rgba(0,0,0,0.40);
   }
   .hr-btn:hover::before {
     background: linear-gradient(225deg,
@@ -389,8 +389,7 @@ export default function Hero() {
     return () => { wrap.removeEventListener("mousemove", onMove); wrap.removeEventListener("mouseleave", onLeave); };
   }, []);
 
-  /* ── Magnetic + ripple buttons ── */
-  // ✅ Fix: use structural type { current: T | null } — works across all React/TS versions
+
   const makeMagnetic = useCallback((ref: { current: HTMLAnchorElement | null }) => {
     const btn = ref.current;
     if (!btn) return;
@@ -465,7 +464,7 @@ export default function Hero() {
           ref={videoRef}
           className={`hr-video${videoShow ? " show" : ""}`}
           autoPlay muted loop playsInline aria-hidden="true"
-          style={{ transition: "opacity 2.2s ease, transform 0.12s ease" }}
+          style={{ transition: "opacity 1.2s ease, transform 0.12s ease" }}
         >
           <source src="/bg.mp4" type="video/mp4" />
         </video>

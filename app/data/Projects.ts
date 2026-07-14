@@ -1,15 +1,10 @@
-// ─────────────────────────────────────────────────────────────
-//  projects.ts  —  Shaurya IT Services
-//  Source of truth for all project data
-// ─────────────────────────────────────────────────────────────
-
 export const projects = [
   {
     name: "SpendWise",
     tagline: "Modern Wealth Management",
     desc: "A hands-on exploration of full-stack finance tracking. Built to master complex state management, data visualization, and secure user authentication flow.",
     category: "Web App",
-    mockup: "/mocups/spendwise.png",
+    mockup: "/mocups/spendwise-compressed.jpg",
     accentColor: "#10b981",
     year: "2025",
     clientRequirements: [
@@ -33,7 +28,7 @@ export const projects = [
     tagline: "Automated Attendance System",
     desc: "A specialized tool designed to solve manual bookkeeping. Features logic for automated salary calculation based on attendance markers and shift hours.",
     category: "Tracking App",
-    mockup: "/mocups/dailymark.png",
+    mockup: "/mocups/dailymark-compressed.jpg",
     accentColor: "#8b5cf6",
     year: "2025",
     clientRequirements: [
@@ -57,7 +52,8 @@ export const projects = [
     tagline: "100+ productivity tools",
     desc: "An all-in-one productivity web platform with 100+ online tools — AI generators, developer utilities, and text processors.",
     category: "Web Platform",
-    mockup: "/mocups/shaurya.png",
+    mockup: "/mocups/shaurya-compressed.jpg",
+    logo: "/logos/shauryatools.png",
     accentColor: "#63d4ff",
     year: "2024",
     clientRequirements: [
@@ -76,11 +72,139 @@ export const projects = [
     },
   },
   {
+    name: "Phulwari",
+    tagline: "Where Children Learn & Mothers Thrive",
+    desc: "A modern website for Phulwari Mother & Child Activity Centre, designed to showcase engaging children's learning programs and dedicated fitness activities for mothers through a warm, family-focused digital experience.",
+    category: "Educational Website",
+    mockup: "/mocups/phulwari-compressed.jpg",
+    logo: "/logos/phulwari_logo.png",
+    accentColor: "#7AC943",
+    year: "2025",
+    clientRequirements: [
+      "Warm and family-friendly UI/UX",
+      "Responsive design across all devices",
+      "SEO-optimized pages with fast performance",
+    ],
+    review: {
+      clientName: "Ashish Kumar",
+      clientRole: "Founder & Developer",
+      rating: 5,
+      text: "Phulwari was designed to create a welcoming digital experience that reflects the centre's mission of nurturing children's growth while supporting mothers' health and well-being.",
+    },
+    links: {
+      view: "https://www.phulwari.co.in/",
+    },
+  },
+  {
+    name: "Sabka Saathi Digital Services",
+    tagline: "Next-Generation Digital Solutions Agency",
+    desc: "A premium software agency website built to showcase high-performance web development, mobile applications, CRM automation, and cloud solutions.",
+    category: "Agency Website",
+    mockup: "/mocups/sabkasathi-compressed.jpg",
+    logo: "/logos/sabkasathi.png",
+    accentColor: "#FF6B35",
+    year: "2025",
+    clientRequirements: [
+      "Premium agency branding with modern UI/UX",
+      "High-performance and SEO-optimized architecture",
+      "Responsive design for all devices",
+      "Portfolio and case study showcase",
+      "Service-focused landing pages",
+      "Lead generation with project inquiry forms",
+      "Optimized animations and smooth user experience",
+    ],
+    review: {
+      clientName: "Ashish Kumar",
+      clientRole: "Founder, Sabka Saathi Digital Services",
+      rating: 5,
+      text: "The website perfectly represents our vision of making digital transformation accessible for startups and local businesses through a fast, modern, and trustworthy online presence.",
+    },
+    links: {
+      view: "https://www.sabkasaathidigitalservices.com/",
+    },
+  },
+  {
+    name: "Vione",
+    tagline: "Luxury Redefined",
+    desc: "A premium luxury brand website for Vione, built with a refined dark aesthetic, cinematic product presentation, and fluid interactions that speak the language of high-end fashion and lifestyle.",
+    category: "Luxury Brand Website",
+    mockup: "/mocups/vione-compressed.jpg",
+    logo: "/logos/vione.png",
+    accentColor: "#D4AF37",
+    year: "2025",
+    clientRequirements: [
+      "Premium dark luxury aesthetic",
+      "Cinematic product presentation",
+      "Smooth scroll-driven interactions",
+      "Mobile-first responsive design",
+    ],
+    review: {
+      clientName: "Vione Team",
+      clientRole: "Brand Owner",
+      rating: 5,
+      text: "Vione needed a digital presence that felt as premium as the brand itself — the final site captures that identity perfectly.",
+    },
+    links: {
+      view: "https://www.vione.cc/",
+    },
+  },
+  {
+    name: "Smart Edge Education Consultancy",
+    tagline: "Admission & Career Guidance, Bihar",
+    desc: "An education consultancy website for Smart Edge, helping students across Bihar navigate college admissions and career guidance through clear service pages, structured information, and a lead-focused layout.",
+    category: "Consultancy Website",
+    mockup: "/mocups/smartedge-compressed.jpg",
+    logo: "/logos/smartedge.png",
+    accentColor: "#2563EB",
+    year: "2025",
+    clientRequirements: [
+      "Clear breakdown of admission & career services",
+      "Structured, easy-to-navigate information architecture",
+      "SEO-optimized content for local Bihar searches",
+      "Inquiry form for lead capture",
+    ],
+    review: {
+      clientName: "Smart Edge Team",
+      clientRole: "Founder, Smart Edge Education Consultancy",
+      rating: 5,
+      text: "The website makes it so much easier for students and parents to understand our services and reach out for guidance.",
+    },
+    links: {
+      view: "https://www.smartedgeeducationconsultancy.com/",
+    },
+  },
+  {
+    name: "Dr's Point Clinic",
+    tagline: "Best Skin & Laser Clinic, South Delhi",
+    desc: "A conversion-focused landing page for Dr's Point Clinic, a skin and laser treatment centre in South Delhi, designed to build patient trust and drive appointment inquiries.",
+    category: "Healthcare Landing Page",
+    mockup: "/mocups/drspoint-compressed.jpg",
+    logo: "/logos/drspoint.png",
+    accentColor: "#14B8A6",
+    year: "2025",
+    clientRequirements: [
+      "Trust-building clinical design",
+      "Treatment & service showcase",
+      "Appointment inquiry integration",
+      "Local SEO for South Delhi searches",
+    ],
+    review: {
+      clientName: "Dr's Point Team",
+      clientRole: "Clinic Owner",
+      rating: 5,
+      text: "The landing page looks professional and trustworthy — exactly what our patients need to see before booking a visit.",
+    },
+    links: {
+      view: "https://drspointlandingpage.vercel.app/",
+    },
+  },
+  {
     name: "VS Fitness Club",
     tagline: "High-energy gym landing page",
     desc: "A bold, conversion-focused gym landing page for VS Fitness Club, Nagpur — featuring WhatsApp integration and scroll-reveal animations.",
     category: "Web App",
-    mockup: "/mocups/vsfitness.png",
+    mockup: "/mocups/vsfitness-compressed.jpg",
+  
     accentColor: "#ef4444",
     year: "2025",
     clientRequirements: [
@@ -103,7 +227,8 @@ export const projects = [
     tagline: "Dark & artistic tattoo studio website",
     desc: "A visually striking website for Inkfinity Tattoo Studio — designed with a dark, edgy aesthetic to showcase the artist's portfolio.",
     category: "Web App",
-    mockup: "/mocups/inkfinity.png",
+    mockup: "/mocups/inkfinity-compressed.jpg",
+  
     accentColor: "#a78bfa",
     year: "2025",
     clientRequirements: [
@@ -118,7 +243,7 @@ export const projects = [
       text: "This is exactly what we envisioned. The dark aesthetic matches our brand perfectly.",
     },
     links: {
-       view: "https://inkfinitytattoostudio.vercel.app/",
+      view: "https://inkfinitytattoostudio.vercel.app/",
     },
   },
   {
@@ -126,7 +251,8 @@ export const projects = [
     tagline: "Full-stack food delivery platform",
     desc: "Built a full-featured food delivery Android app with admin panel and real-time order tracking according to client specifications.",
     category: "Android App",
-    mockup: "/mocups/foodify.png",
+    mockup: "/mocups/foodify-compressed.jpg",
+ 
     accentColor: "#f59e0b",
     year: "2024",
     clientRequirements: [
@@ -138,7 +264,7 @@ export const projects = [
     review: {
       clientName: "Rajesh Sharma",
       clientRole: "Restaurant Owner",
-      rating: 4, // Adjusted from 3 to 4 for better portfolio presentation
+      rating: 4,
       text: "Good app overall. The order tracking works well and the admin panel covers the basics. The team was very responsive to our needs.",
     },
     links: {
@@ -150,7 +276,8 @@ export const projects = [
     tagline: "Location-based hotel discovery app",
     desc: "A custom location-based hotel tracking app for Shivam Khandagale. Hotels register their business; users discover nearby options in real time.",
     category: "Tracking App",
-    mockup: "/mocups/restrack.png",
+    mockup: "/mocups/restrack-compressed.jpg",
+
     accentColor: "#63d4ff",
     year: "2024",
     clientRequirements: [
@@ -174,7 +301,8 @@ export const projects = [
     tagline: "E-commerce platform with Razorpay",
     desc: "A complete e-commerce platform with Firebase backend, Razorpay payment integration, and full inventory management.",
     category: "Web App",
-    mockup: "/mocups/swadyayam.png",
+    mockup: "/mocups/swadyayam-compressed.jpg",
+    logo: "/logos/swadhyayam.png",
     accentColor: "#a855f7",
     year: "2024",
     clientRequirements: [
@@ -197,7 +325,8 @@ export const projects = [
     tagline: "AI-powered README generator",
     desc: "An AI-powered web tool that generates professional README files instantly, tailored to developer-friendly requirements.",
     category: "Web Tool",
-    mockup: "/mocups/readmegen.png",
+    mockup: "/mocups/readmegen-compressed.jpg",
+    logo: "/logos/readmegen.png",
     accentColor: "#00ff9d",
     year: "2024",
     clientRequirements: [
@@ -220,7 +349,8 @@ export const projects = [
     tagline: "Logic game with minimax AI",
     desc: "An advanced logic-based game with AI opponent using the minimax algorithm and multiplayer support.",
     category: "Game",
-    mockup: "/mocups/dots.png",
+    mockup: "/mocups/dots-compressed.jpg",
+
     accentColor: "#fb923c",
     year: "2023",
     clientRequirements: [
@@ -243,7 +373,8 @@ export const projects = [
     tagline: "Logic game with minimax AI",
     desc: "An advanced logic-based game with AI opponent using the minimax algorithm and multiplayer support.",
     category: "Game",
-    mockup: "/mocups/tictac.png",
+    mockup: "/mocups/tictac-compressed.jpg",
+
     accentColor: "#fb923c",
     year: "2023",
     clientRequirements: [
