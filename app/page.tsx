@@ -1,39 +1,39 @@
-"use client";
+import About from "./about/page";
+import Contact from "./contact/page";
+import Footer from "./components/Footer";
+import Hero from "./hero/page";
+import ProjectsSection from "./project/page";
+import Services from "./services/page";
+import TechThicker from "./techstack/page";
+import Testimonials from "./testinomals/page";
+import WeWorkWithTicker from "./weworkwith/WeWorkWithTicker";
+import HowIWork from "./work/page";
+import BlogSection from "../app/blogs/page";
+import SplashGate from "./SplashGate";
+import { getTestimonials } from "@/app/lib/testimonials";
+import Dock from "./components/Dock";
+import ChatWidget from "./components/ChatWidget";
 
-import { useState } from "react";
-import About from "./section/about/page";
-import Contact from "./section/contact/page";
-import Footer from "./section/Footer";
-import Hero from "./section/hero/page";
-import Navbar from "./section/Navbar";
-import ProjectsSection from "./section/project/page";
-import Services from "./section/services/page";
-import Splash from "./section/Splash";
-import TechStack from "./section/skills/page";
-import TechThicker from "./section/techthicker/page";
-import Testimonials from "./section/testinomals/page";
-import HowIWork from "./section/work/page";
-import Skills from "./section/skills/page";
-import WeWorkWithPage from "./section/weworkwith/page";
-
-export default function Page() {
-  const [heroReady, setHeroReady] = useState(false);
+export default async function Page() {
+  const projects: any[] = [];
+  const testimonials = await getTestimonials();
 
   return (
-    <>
-      <Splash onDone={() => setHeroReady(true)} />
-      {heroReady && <Navbar />}
+    <SplashGate>
       <Hero />
       <ProjectsSection />
-      <WeWorkWithPage />
+      <WeWorkWithTicker projects={projects} />
       <About />
-      <Testimonials />
+      <Testimonials testimonials={testimonials} />
       <TechThicker />
-      
       <Services />
       <HowIWork />
+      <BlogSection />
       <Contact />
+     
       <Footer />
-    </>
+      <ChatWidget />
+      
+    </SplashGate>
   );
 }

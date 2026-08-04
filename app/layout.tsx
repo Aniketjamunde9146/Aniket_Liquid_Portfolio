@@ -1,45 +1,45 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import ChatWidget from "./components/ChatWidget";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aniketwebdev.in"),
   title: {
-    default: "Aniket Jamunde — Flutter & Web Developer",
+    default: "Aniket Jamunde — Flutter & Web Developer in Maharashtra, India",
     template: "%s | Aniket Jamunde",
   },
   description:
-    "Aniket Jamunde is a self-taught Flutter & web developer from Chh. Sambhajinagar, Maharashtra — crafting high-performance cross-platform mobile apps with Flutter & Dart, and blazing-fast modern websites with React & Next.js. Firebase for real-time backends. Available for freelance projects across India and worldwide.",
+    "Aniket Jamunde is a self-taught Flutter & web developer from Chhatrapati Sambhajinagar (Aurangabad), Maharashtra — crafting high-performance cross-platform mobile apps with Flutter & Dart, and blazing-fast modern websites with React & Next.js. Firebase for real-time backends. Available for freelance projects across India and worldwide.",
   keywords: [
-  
     "Flutter developer",
     "Flutter developer India",
     "Flutter developer Maharashtra",
     "Flutter developer Aurangabad",
-    "Flutter developer Sambhajinagar",
+    "Flutter developer Chhatrapati Sambhajinagar",
     "Dart developer",
     "cross-platform app developer",
     "mobile app developer India",
     "Flutter Firebase developer",
     "Flutter freelancer India",
-    // 🌐 Web
     "web developer India",
     "React developer India",
     "Next.js developer India",
     "frontend developer Maharashtra",
     "web developer Aurangabad",
-    "web developer Sambhajinagar",
+    "web developer Chhatrapati Sambhajinagar",
     "modern website developer",
-    // 🔧 Full-stack / backend
     "full-stack developer India",
     "Node.js developer",
     "Firebase developer",
     "MongoDB developer",
-    // 💼 Freelance intent keywords
     "freelance Flutter developer India",
     "freelance web developer India",
     "hire Flutter developer India",
     "hire web developer India",
-    // 🪪 Personal brand
+    "hire mobile app developer India",
+    "portfolio website developer India",
     "Aniket Jamunde",
     "Aniket Jamunde developer",
     "aniketwebdev.in",
@@ -49,16 +49,18 @@ export const metadata: Metadata = {
   publisher: "Aniket Jamunde",
   alternates: {
     canonical: "https://aniketwebdev.in",
+    languages: {
+      "en-IN": "https://aniketwebdev.in",
+    },
   },
-  // ✅ Verification for search consoles
   verification: {
-    google: "cLgEGPMfIUTUY17cOxXqzvocp0P17e54FeAJJtg6pUA", // ✅ Google Search Console verified
+    google: "cLgEGPMfIUTUY17cOxXqzvocp0P17e54FeAJJtg6pUA",
     other: {
-      "msvalidate.01": "E432B33EFCDFAF984EB491BB59394773", // ✅ Bing/Microsoft verification
+      "msvalidate.01": "E432B33EFCDFAF984EB491BB59394773",
     },
   },
   openGraph: {
-    title: "Aniket Jamunde — Flutter & Web Developer",
+    title: "Aniket Jamunde — Flutter & Web Developer in Maharashtra, India",
     description:
       "Flutter & web developer from Maharashtra, India. Building high-performance cross-platform mobile apps with Flutter and modern websites with React & Next.js. Available for freelance worldwide.",
     url: "https://aniketwebdev.in",
@@ -71,6 +73,7 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         alt: "Aniket Jamunde — Flutter & Web Developer",
+        type: "image/png",
       },
     ],
   },
@@ -80,7 +83,7 @@ export const metadata: Metadata = {
     description:
       "Building beautiful Flutter apps & fast modern websites with React, Next.js & Firebase. Based in Maharashtra, India. Open for freelance.",
     images: ["/og-image.png"],
-    creator: "@YourTwitterHandle", // 👈 Replace with your Twitter/X handle
+    creator: "@Aniketjamund002",
   },
   robots: {
     index: true,
@@ -94,13 +97,19 @@ export const metadata: Metadata = {
     },
   },
   category: "technology",
-  // ✅ App-related meta for PWA/mobile
   applicationName: "Aniket Jamunde Portfolio",
   referrer: "origin-when-cross-origin",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
+  },
+  other: {
+    "msapplication-TileColor": "#fdf6ee",
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "Aniket Jamunde",
   },
 };
 
@@ -112,7 +121,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* ✅ Fonts */}
+        {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -120,30 +129,37 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
 
-        {/* ✅ Favicons & PWA */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.png" type="image/svg+xml" />
+        {/* Favicons & PWA */}
+        <link rel="icon" href="/icon.png" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
 
-        {/* ✅ Theme */}
+        {/* Sitemap discovery hint (optional — robots.txt already points to it) */}
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+        {/* Theme */}
         <meta name="theme-color" content="#fdf6ee" />
         <meta name="color-scheme" content="light" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* ✅ Geo targeting — helps local SEO in India */}
+        {/* Geo targeting */}
         <meta name="geo.region" content="IN-MH" />
-        <meta name="geo.placename" content="Chh. Sambhajinagar, Maharashtra, India" />
+        <meta
+          name="geo.placename"
+          content="Chhatrapati Sambhajinagar, Maharashtra, India"
+        />
         <meta name="geo.position" content="19.8762;75.3433" />
         <meta name="ICBM" content="19.8762, 75.3433" />
 
-        {/* ✅ Language & Content */}
+        {/* Language & content */}
         <meta httpEquiv="content-language" content="en-IN" />
         <meta name="language" content="English" />
         <meta name="rating" content="general" />
         <meta name="revisit-after" content="7 days" />
+        <meta name="distribution" content="global" />
 
-        {/* ✅ JSON-LD Structured Data — Person Schema */}
+        {/* JSON-LD — Person */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -154,7 +170,7 @@ export default function RootLayout({
               url: "https://aniketwebdev.in",
               jobTitle: "Flutter & Web Developer",
               description:
-                "Self-taught Flutter & web developer from Chh. Sambhajinagar, Maharashtra. Building cross-platform mobile apps with Flutter & Dart, and modern websites with React & Next.js. Firebase for real-time backends. Available for freelance projects across India and worldwide.",
+                "Self-taught Flutter & web developer from Chhatrapati Sambhajinagar, Maharashtra. Building cross-platform mobile apps with Flutter & Dart, and modern websites with React & Next.js. Firebase for real-time backends. Available for freelance projects across India and worldwide.",
               image: "https://aniketwebdev.in/og-image.png",
               email: "mailto:aniketjamunde4@gmail.com",
               knowsAbout: [
@@ -172,7 +188,7 @@ export default function RootLayout({
               ],
               address: {
                 "@type": "PostalAddress",
-                addressLocality: "Chh. Sambhajinagar",
+                addressLocality: "Chhatrapati Sambhajinagar",
                 addressRegion: "Maharashtra",
                 addressCountry: "IN",
               },
@@ -184,7 +200,7 @@ export default function RootLayout({
           }}
         />
 
-        {/* ✅ JSON-LD Structured Data — WebSite Schema (enables Sitelinks Search Box) */}
+        {/* JSON-LD — WebSite */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -204,7 +220,48 @@ export default function RootLayout({
           }}
         />
 
-        {/* ✅ JSON-LD Structured Data — BreadcrumbList for homepage */}
+        {/* JSON-LD — ProfessionalService (local/commercial intent) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ProfessionalService",
+              name: "Aniket Jamunde — Flutter & Web Development Services",
+              image: "https://aniketwebdev.in/og-image.png",
+              url: "https://aniketwebdev.in",
+              email: "aniketjamunde4@gmail.com",
+              description:
+                "Freelance Flutter and web development services — cross-platform mobile apps and modern websites built with Flutter, React, Next.js, and Firebase.",
+              areaServed: ["IN"],
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Chhatrapati Sambhajinagar",
+                addressRegion: "Maharashtra",
+                addressCountry: "IN",
+              },
+              priceRange: "$$",
+              makesOffer: [
+                {
+                  "@type": "Offer",
+                  itemOffered: {
+                    "@type": "Service",
+                    name: "Flutter App Development",
+                  },
+                },
+                {
+                  "@type": "Offer",
+                  itemOffered: {
+                    "@type": "Service",
+                    name: "Web Development (React/Next.js)",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
+
+        {/* JSON-LD — BreadcrumbList */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -223,7 +280,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        
+        {children}
+       
+      </body>
     </html>
   );
 }
