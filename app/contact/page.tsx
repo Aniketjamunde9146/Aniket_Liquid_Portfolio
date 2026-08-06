@@ -5,6 +5,7 @@ import emailjs from "@emailjs/browser";
 import { Send, User, Phone, Mail, Briefcase, MessageSquare, CheckCircle2, Loader2 } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -385,6 +386,20 @@ export default function Contact() {
         .ct-spin { animation: ctSpin .8s linear infinite; }
         @keyframes ctSpin { to { transform: rotate(360deg); } }
 
+        .ct-consent {
+          font-size: .74rem; font-weight: 400;
+          color: rgba(255,255,255,.3); line-height: 1.6;
+          text-align: center; margin: -.2rem 0 0;
+        }
+        .ct-consent a {
+          color: rgba(255,255,255,.55);
+          text-decoration: underline;
+          text-decoration-color: rgba(110,168,255,.45);
+          text-underline-offset: 2px;
+          transition: color .25s ease, text-decoration-color .25s ease;
+        }
+        .ct-consent a:hover { color: #6ea8ff; text-decoration-color: #6ea8ff; }
+
         @media (max-width: 820px) {
           .ct-inner { grid-template-columns: 1fr; gap: 3rem; }
           .ct-title { font-size: clamp(2.2rem,8vw,3.5rem); }
@@ -505,6 +520,11 @@ export default function Contact() {
                   }
                 </span>
               </button>
+
+              <p className="ct-consent ct-anim">
+                By sending this, you agree to my{" "}
+                <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>.
+              </p>
 
             </form>
           </div>

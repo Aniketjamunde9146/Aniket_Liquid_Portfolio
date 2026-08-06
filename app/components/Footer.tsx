@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 const NAV_LINKS = [
   {
@@ -104,6 +105,10 @@ const NAV_LINKS = [
       </svg>
     ),
   },
+];
+
+const LEGAL_LINKS = [
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
 ];
 
 const SOCIALS = [
@@ -429,12 +434,26 @@ export default function Footer() {
         }
         .ft-bottom.show { opacity: 1; transform: none; }
 
+        .ft-copy-group {
+          display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem;
+        }
+
         .ft-copy {
           font-size: clamp(.72rem,.9vw,.8rem); font-weight: 400;
           color: rgba(255,255,255,.22); line-height: 1.5;
         }
         .ft-copy a { color: rgba(255,255,255,.38); text-decoration: none; transition: color .3s; }
         .ft-copy a:hover { color: rgba(255,255,255,.75); }
+
+        .ft-legal {
+          display: flex; align-items: center; gap: .9rem;
+        }
+        .ft-legal-link {
+          font-size: clamp(.72rem,.9vw,.8rem); font-weight: 400;
+          color: rgba(255,255,255,.3); text-decoration: none;
+          transition: color .3s ease;
+        }
+        .ft-legal-link:hover { color: rgba(255,255,255,.8); }
 
         .ft-back-top {
           display: inline-flex; align-items: center; gap: .45rem;
@@ -458,6 +477,7 @@ export default function Footer() {
           .ft-cta-strip { flex-direction: column; align-items: flex-start; gap: 1.4rem; }
           .ft-btn { width: 100%; }
           .ft-bottom { flex-direction: column; align-items: center; text-align: center; }
+          .ft-copy-group { justify-content: center; }
         }
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -557,10 +577,19 @@ export default function Footer() {
           </div>
 
           <div className={`ft-bottom${show ? " show" : ""}`}>
-            <p className="ft-copy">
-              © {year} <a href="#">Aniket Jamunde</a>. All rights reserved.
-              &nbsp;·&nbsp; Built with Next.js &amp; Flutter.
-            </p>
+            <div className="ft-copy-group">
+              <p className="ft-copy">
+                © {year} <a href="#">Aniket Jamunde</a>. All rights reserved.
+                &nbsp;·&nbsp; Built with Next.js &amp; Flutter.
+              </p>
+              <div className="ft-legal">
+                {LEGAL_LINKS.map(link => (
+                  <Link key={link.label} href={link.href} className="ft-legal-link">
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
             <button
               className="ft-back-top"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
