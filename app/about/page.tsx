@@ -847,7 +847,7 @@ export default function About() {
               <span className="ab-btn-inner">Hire Me</span>
             </a>
             <a
-              href="/Aniket_jamunde_CV.png"
+              href="/Aniket_jamunde_CV.pdf"
               download
               className="ab-btn secondary"
               ref={btn2Ref}
