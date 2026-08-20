@@ -1,492 +1,372 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
-  /* ── SPLASH ──────────────────────────────────────────────────────────── */
-  .sp-wrap {
-    position: fixed; inset: 0; z-index: 400;
-    background: #000;
-    display: flex; align-items: center; justify-content: center;
-  }
-  /* Slide UP to reveal hero underneath */
-  .sp-wrap.gone {
-    transform: translateY(-100%);
-    transition: transform 1.15s cubic-bezier(0.76, 0, 0.24, 1);
-    pointer-events: none;
-  }
-
-  .sp-inner { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
-
-  .sp-word {
-    display: inline-block;
-    font-family: 'DM Sans', sans-serif; font-weight: 600;
-    font-size: clamp(2.6rem, 7.5vw, 6.4rem);
-    color: #fff; letter-spacing: -0.04em; line-height: 1.04;
-    opacity: 0; transform: translateY(48px) rotateX(-25deg);
-    transform-origin: 50% 100%;
-    transition: opacity 0.82s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.82s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .sp-word.show { opacity: 1; transform: translateY(0) rotateX(0deg); }
-  .sp-headline-row { display: flex; gap: 0.3em; perspective: 600px; flex-wrap: wrap; justify-content: center; }
-
-  .sp-line {
-    width: 0; height: 1.5px;
-    background: linear-gradient(90deg,
-      transparent 0%, rgba(255,255,255,0.75) 40%,
-      rgba(255,255,255,0.75) 60%, transparent 100%
-    );
-    border-radius: 2px; opacity: 0;
-    transition: width 1.4s cubic-bezier(0.25, 1, 0.5, 1) 0.48s, opacity 0.3s ease 0.48s;
-  }
-  .sp-line.show { width: 220px; opacity: 1; }
-
-  .sp-sub {
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.62rem, 1.15vw, 0.76rem); font-weight: 400;
-    color: rgba(255,255,255,0.28); letter-spacing: 0.32em; text-transform: uppercase;
-    opacity: 0; transform: translateY(8px);
-    transition: opacity 0.72s ease 0.8s, transform 0.72s ease 0.8s;
-  }
-  .sp-sub.show { opacity: 1; transform: translateY(0); }
-
-  /* ── HERO ─────────────────────────────────────────────────────────────── */
-  .hr-wrap {
-    position: relative; min-height: 100vh; overflow: hidden;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-  }
-
-  .hr-video {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; opacity: 0;
-    transition: opacity 2.2s ease; will-change: opacity;
-  }
-  .hr-video.show { opacity: 1; }
-
-  .hr-overlay {
-    position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background:
-      radial-gradient(ellipse 75% 55% at 50% 45%, rgba(1,3,9,0.35) 0%, transparent 68%),
-      linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.08) 60%, rgba(0,0,0,0.80) 100%),
-      linear-gradient(to right,  rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 22%, transparent 42%),
-      linear-gradient(to left,   rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 22%, transparent 42%);
-  }
-
-  .hr-grain {
-    position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.02;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-    animation: hrGrain 0.26s steps(1) infinite;
-  }
-  @keyframes hrGrain {
-    0%   { background-position:   0px   0px; }
-    25%  { background-position: -30px  12px; }
-    50%  { background-position:  14px -22px; }
-    75%  { background-position: -18px  28px; }
-    100% { background-position:   0px   0px; }
-  }
-
-  /* ── CONTENT ──────────────────────────────────────────────────────────── */
-  .hr-content {
-    position: relative; z-index: 3; width: 100%;
-    max-width: 1080px; padding: clamp(1.5rem, 4vw, 3rem);
-    display: flex; flex-direction: column; align-items: center;
-    text-align: center; margin-top: -2rem;
-  }
-
-  /* ── BADGE ────────────────────────────────────────────────────────────── */
-  .hr-badge {
-    position: relative;
-    display: inline-flex; align-items: center; gap: 0.62rem;
-    border-radius: 999px;
-    padding: 0.46rem 1.35rem 0.46rem 0.92rem;
-    background: linear-gradient(180deg, rgba(7,18,40,0.56) 0%, rgba(3,8,19,0.13) 100%);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    color: rgba(255,255,255,0.72);
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.7rem, 1vw, 0.82rem); font-weight: 400; letter-spacing: 0.015em;
-    margin-bottom: clamp(1.5rem, 3vw, 2.2rem);
-    border: 1px solid transparent; cursor: default;
-    opacity: 0; transform: translateY(14px) scale(0.92);
-    transition: opacity 0.78s ease, transform 0.78s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease, color 0.3s ease;
-  }
-  .hr-badge.show { opacity: 1; transform: translateY(0) scale(1); }
-
-  .hr-badge::before {
-    content: ''; position: absolute; inset: -1px; border-radius: 999px; padding: 1.5px;
-    background: linear-gradient(135deg,
-      rgba(255,255,255,0.70)  0%, rgba(40,110,250,0.80)  25%,
-      rgba(10,30,80,0.18)    50%, rgba(45,120,255,0.90)  75%,
-      rgba(255,255,255,0.60) 100%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    pointer-events: none; transition: background 0.4s ease;
-  }
-  .hr-badge::after {
-    content: ''; position: absolute; inset: 0; border-radius: 999px;
-    background: radial-gradient(circle at 50% 120%, rgba(45,130,255,0.28) 0%, transparent 68%);
-    opacity: 0.38; pointer-events: none; transition: opacity 0.4s ease;
-  }
-  .hr-badge:hover {
-    color: rgba(255,255,255,0.94);
-    box-shadow: inset 0 0 18px rgba(45,125,255,0.55), 0 0 28px rgba(24,88,238,0.30), 0 8px 28px rgba(0,0,0,0.40);
-  }
-  .hr-badge:hover::before {
-    background: linear-gradient(225deg,
-      rgba(255,255,255,0.95)  0%, rgba(65,145,255,1.00) 30%,
-      rgba(15,45,120,0.38)   50%, rgba(90,170,255,1.00) 80%,
-      rgba(255,255,255,0.90) 100%
-    );
-  }
-  .hr-badge:hover::after { opacity: 0.58; }
-
-  .hr-badge-dot {
-    position: relative; z-index: 1;
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #fff; box-shadow: 0 0 10px rgba(255,255,255,1);
-    flex-shrink: 0; opacity: 0; transform: translateX(-6px) scale(0);
-    transition: opacity 0.5s ease 0.15s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
-    animation: dotPulse 2.4s ease-in-out infinite 1s;
-  }
-  .hr-badge.show .hr-badge-dot { opacity: 1; transform: translateX(0) scale(1); }
-  @keyframes dotPulse {
-    0%,100% { box-shadow: 0 0 10px rgba(255,255,255,.9), 0 0 0 0 rgba(255,255,255,.4); }
-    50%     { box-shadow: 0 0 16px rgba(255,255,255,1), 0 0 0 5px rgba(255,255,255,0); }
-  }
-  .hr-badge-text { position: relative; z-index: 1; }
-
-  /* ── HEADLINE ─────────────────────────────────────────────────────────── */
-  .hr-title-wrap {
-    perspective: 800px;
-    display: flex; flex-wrap: wrap; justify-content: center;
-    gap: 0.2em 0.28em;
-    max-width: 900px;
-    margin-bottom: clamp(1.6rem, 3vw, 2.2rem);
-  }
-
-  .hr-title-word {
-    font-family: 'DM Sans', sans-serif; font-weight: 500;
-    font-size: clamp(2.4rem, 6.4vw, 5.8rem);
-    color: #fff; letter-spacing: -0.02em; line-height: 1.09;
-    text-shadow: 0 2px 52px rgba(0,0,0,0.5);
-    display: inline-block;
-    opacity: 0; transform: translateY(44px) rotateX(-20deg);
-    transform-origin: 50% 100%;
-    transition: opacity 0.82s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.82s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .hr-title-word.show { opacity: 1; transform: translateY(0) rotateX(0deg); }
-
-  /* ── DESCRIPTION ─────────────────────────────────────────────────────── */
-  .hr-desc-wrap {
-    max-width: 820px;
-    opacity: 0; transform: translateY(20px);
-    transition: opacity 0.9s ease, transform 0.9s ease;
-  }
-  .hr-desc-wrap.show { opacity: 1; transform: translateY(0); }
-
-  .hr-desc {
-    font-family: 'DM Sans', sans-serif; font-weight: 400;
-    font-size: clamp(0.9rem, 1.32vw, 1.08rem);
-    color: rgba(255,255,255,0.70); line-height: 1.7;
-  }
-
-  /* ── BUTTONS ─────────────────────────────────────────────────────────── */
-  .hr-btns {
-    display: flex; flex-wrap: wrap; gap: 1.4rem; justify-content: center;
-    margin-top: clamp(4rem, 4vw, 2.8rem);
-    opacity: 40; transform: translateY(28px);
-    transition: opacity 0.9s ease, transform 0.9s ease;
-  }
-  .hr-btns.show { opacity: 1; transform: translateY(0); }
-
-  .hr-btn {
-    position: relative;
-    font-family: 'DM Sans', sans-serif; font-weight: 500;
-    font-size: clamp(0.84rem, 1.1vw, 0.95rem);
-    padding: 0.95rem 2.6rem; border-radius: 18px;
-    text-decoration: none;
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 0.5rem; cursor: pointer; overflow: hidden;
-    color: #fff;
-    background: linear-gradient(180deg, rgba(7, 18, 40, 0.14) 0%, rgba(3, 8, 19, 0.11) 100%);
-    border: 1px solid transparent;
-    transition: transform 0.4s cubic-bezier(0.5, 1, 0.5, 1), box-shadow 0.4s ease, color 0.3s ease;
-  }
-  .hr-btn-inner {
-    position: relative; z-index: 1;
-    display: block; pointer-events: none;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .hr-btn-ripple {
-    position: absolute; border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    transform: scale(0); pointer-events: none;
-    animation: btnRipple 0.55s ease-out forwards;
-  }
-  @keyframes btnRipple { to { transform: scale(4); opacity: 0; } }
-
-  .hr-btn::before {
-    content: ''; position: absolute; inset: -1px; border-radius: 20px; padding: 2.5px;
-    background: linear-gradient(135deg,
-      rgba(255,255,255,0.70)  0%, rgba(40, 138, 250, 0.8)  25%,
-      rgba(10,30,80,0.18)    50%, rgba(178, 45, 255, 0.51)  75%,
-      rgba(255,255,255,0.60) 100%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    pointer-events: none; transition: background 0.4s ease;
-  }
-  .hr-btn::after {
-    content: ''; position: absolute; inset: 0; border-radius: 12px;
-    background: radial-gradient(circle at 50% 120%, rgba(45,130,255,0.28) 0%, transparent 68%);
-    opacity: 0.38; pointer-events: none; transition: opacity 0.4s ease;
-  }
-  .hr-btn:hover {
-    color: rgba(255,255,255,0.96);
-    box-shadow: inset 0 0 18px rgba(45, 83, 255, 0.55), 0 0 28px rgba(24,88,238,0.30), 0 8px 28px rgba(0,0,0,0.40);
-  }
-  .hr-btn:hover::before {
-    background: linear-gradient(225deg,
-      rgba(255,255,255,0.95)  0%, rgba(65,145,255,1.00) 30%,
-      rgba(15,45,120,0.38)   50%, rgba(90,170,255,1.00) 80%,
-      rgba(255,255,255,0.90) 100%
-    );
-  }
-  .hr-btn:hover::after { opacity: 0.58; }
-  .hr-btn:active { transform: translateY(-1px) scale(0.97) !important; }
-
-  .hr-btn.secondary::before {
-    background: linear-gradient(135deg,
-      rgba(255,255,255,0.38)  0%, rgba(35,85,185,0.48)   30%,
-      rgba(5,15,40,0.10)     60%, rgba(35,90,200,0.58)  100%
-    );
-  }
-  .hr-btn.secondary:hover::before {
-    background: linear-gradient(225deg,
-      rgba(255,255,255,0.78)  0%, rgba(55,120,240,0.90)  30%,
-      rgba(10,30,90,0.28)    50%, rgba(70,140,255,0.95)  80%,
-      rgba(255,255,255,0.72) 100%
-    );
-  }
-
-  /* ── SCROLL HINT ──────────────────────────────────────────────────────── */
-  .hr-scroll {
-    position: absolute; bottom: clamp(1.6rem, 3.5vh, 2.8rem); left: 50%;
-    transform: translateX(-50%); z-index: 3;
-    display: flex; align-items: center; gap: 1.3rem;
-    color: rgba(255,255,255,0.28);
-    font-family: 'DM Sans', sans-serif; font-size: 0.6rem; font-weight: 400;
-    letter-spacing: 0.12rem; white-space: nowrap;
-    opacity: 0; transition: opacity 1.1s ease;
-  }
-  .hr-scroll.show { opacity: 1; }
-  .hr-scroll-line { width: 56px; height: 1px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
-  .hr-mouse {
-    width: 16px; height: 23px;
-    border: 1.5px solid rgba(255,255,255,0.24); border-radius: 20px;
-    display: flex; justify-content: center; align-items: flex-start;
-    padding-top: 5px; flex-shrink: 0;
-  }
-  .hr-mouse-dot {
-    width: 2px; height: 4px; border-radius: 2px;
-    background: rgba(255,255,255,0.55);
-    animation: hrMouseDot 2s ease-in-out infinite;
-  }
-  @keyframes hrMouseDot {
-    0%   { transform: translateY(0);   opacity: 1; }
-    70%  { transform: translateY(8px); opacity: 0; }
-    71%  { transform: translateY(0);   opacity: 0; }
-    100% { transform: translateY(0);   opacity: 1; }
-  }
-
-  /* ── RESPONSIVE ───────────────────────────────────────────────────────── */
-  @media (max-width: 600px) {
-    .hr-btns { flex-direction: column; align-items: stretch; width: 100%; max-width: 280px; margin-inline: auto; gap: 1rem; }
-    .hr-btn { padding: 0.9rem 1.6rem; }
-    .hr-scroll-line { width: 32px; }
-    .hr-scroll { gap: 0.85rem; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-  }
-`;
+import Image from "next/image";
 
 /* ── Timing constants (ms) ─────────────────────────────────────────────── */
 const T = {
-  SPLASH_TEXT : 160,
-  SPLASH_LINE : 620,
-  SPLASH_SUB  : 920,
-  SPLASH_UP   : 2850,   // splash slides up
-  HERO        : 3340,   // hero content starts animating in
+  SPLASH_TEXT: 160,
+  SPLASH_LINE: 620,
+  SPLASH_SUB: 920,
+  SPLASH_UP: 2850, // splash exits
+  HERO: 3340, // hero content starts animating in
 } as const;
 
-const HEADLINE_WORDS    = ["The", "Digital", "Solution", "You", "Need"];
+const HEADLINE_WORDS = ["The", "Digital", "Solution", "You", "Need"];
 const SPLASH_WORDS_TEXT = ["Bring", "Ideas", "to", "Reality..."];
 
 export default function Hero() {
-  const [splashWords, setSplashWords] = useState<boolean[]>(SPLASH_WORDS_TEXT.map(() => false));
-  const [splashLine,  setSplashLine]  = useState(false);
-  const [splashSub,   setSplashSub]   = useState(false);
-  const [splashGone,  setSplashGone]  = useState(false);
-  const [videoShow,   setVideoShow]   = useState(false);
-  const [badge,       setBadge]       = useState(false);
-  const [titleWords,  setTitleWords]  = useState<boolean[]>(HEADLINE_WORDS.map(() => false));
-  const [desc,        setDesc]        = useState(false);
-  const [btns,        setBtns]        = useState(false);
-  const [scroll,      setScroll]      = useState(false);
+  const [splashWords, setSplashWords] = useState<boolean[]>(
+    SPLASH_WORDS_TEXT.map(() => false)
+  );
+  const [splashLine, setSplashLine] = useState(false);
+  const [splashSub, setSplashSub] = useState(false);
+  const [splashGone, setSplashGone] = useState(false);
+  const [videoShow, setVideoShow] = useState(false);
+  const [canPlayVideo, setCanPlayVideo] = useState(false);
+  const [badge, setBadge] = useState(false);
+  const [glow, setGlow] = useState(false);
+  const [titleWords, setTitleWords] = useState<boolean[]>(
+    HEADLINE_WORDS.map(() => false)
+  );
+  const [desc, setDesc] = useState(false);
+  const [btns, setBtns] = useState(false);
+  const [scroll, setScroll] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const wrapRef  = useRef<HTMLDivElement>(null);
-  const btn1Ref  = useRef<HTMLAnchorElement>(null);
-  const btn2Ref  = useRef<HTMLAnchorElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const btn1Ref = useRef<HTMLAnchorElement>(null);
+  const btn2Ref = useRef<HTMLAnchorElement>(null);
+
+  /* ── Mobile-first perf gate ──────────────────────────────────────────
+     Background video only loads on wide viewports, on a network that
+     isn't "save data", and when the user hasn't asked for reduced
+     motion. Everyone else gets the static jpg poster — which also
+     doubles as the LCP image, so first paint stays fast on mobile. */
+  useEffect(() => {
+    const isWide = window.matchMedia("(min-width: 768px)").matches;
+    const okMotion = !window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
+    const conn = (navigator as any).connection;
+    const okData =
+      !conn ||
+      (!conn.saveData &&
+        conn.effectiveType !== "2g" &&
+        conn.effectiveType !== "slow-2g");
+    setCanPlayVideo(isWide && okMotion && okData);
+  }, []);
 
   /* ── Sequence ── */
   useEffect(() => {
     const at = (fn: () => void, ms: number) => setTimeout(fn, ms);
 
     const splashWordIds = SPLASH_WORDS_TEXT.map((_, i) =>
-      at(() => setSplashWords(prev => { const next = [...prev]; next[i] = true; return next; }),
-        T.SPLASH_TEXT + i * 110)
+      at(
+        () =>
+          setSplashWords((prev) => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          }),
+        T.SPLASH_TEXT + i * 120
+      )
     );
 
     const ids = [
-      at(() => setSplashLine(true),  T.SPLASH_LINE),
-      at(() => setSplashSub(true),   T.SPLASH_SUB),
-      at(() => setVideoShow(true),   T.SPLASH_UP - 400), // video fades in just before curtain rises
-      at(() => setSplashGone(true),  T.SPLASH_UP),       // curtain slides up
-      at(() => setBadge(true),       T.HERO),
+      at(() => setSplashLine(true), T.SPLASH_LINE),
+      at(() => setSplashSub(true), T.SPLASH_SUB),
+      at(() => setVideoShow(true), T.SPLASH_UP - 400),
+      at(() => setSplashGone(true), T.SPLASH_UP),
+      at(() => setGlow(true), T.HERO - 250),
+      at(() => setBadge(true), T.HERO),
       ...HEADLINE_WORDS.map((_, i) =>
-        at(() => setTitleWords(prev => { const next = [...prev]; next[i] = true; return next; }),
-          T.HERO + 145 + i * 110)
+        at(
+          () =>
+            setTitleWords((prev) => {
+              const next = [...prev];
+              next[i] = true;
+              return next;
+            }),
+          T.HERO + 180 + i * 130
+        )
       ),
-      at(() => setDesc(true),   T.HERO + 145 + HEADLINE_WORDS.length * 110 + 60),
-      at(() => setBtns(true),   T.HERO + 145 + HEADLINE_WORDS.length * 110 + 200),
-      at(() => setScroll(true), T.HERO + 670),
+      at(
+        () => setDesc(true),
+        T.HERO + 180 + HEADLINE_WORDS.length * 130 + 100
+      ),
+      at(
+        () => setBtns(true),
+        T.HERO + 180 + HEADLINE_WORDS.length * 130 + 280
+      ),
+      at(() => setScroll(true), T.HERO + 820),
     ];
 
     return () => [...splashWordIds, ...ids].forEach(clearTimeout);
   }, []);
 
-  /* ── Parallax video on mouse move ── */
+  /* ── Parallax video on mouse move (desktop only — no touch cost) ── */
   useEffect(() => {
     const wrap = wrapRef.current;
-    const vid  = videoRef.current;
-    if (!wrap || !vid) return;
+    const vid = videoRef.current;
+    if (!wrap || !vid || !canPlayVideo) return;
     const onMove = (e: MouseEvent) => {
-      const dx = (e.clientX / window.innerWidth  - 0.5) * 14;
+      const dx = (e.clientX / window.innerWidth - 0.5) * 14;
       const dy = (e.clientY / window.innerHeight - 0.5) * 10;
       vid.style.transform = `translate(${dx}px,${dy}px) scale(1.06)`;
     };
-    const onLeave = () => { vid.style.transform = "translate(0,0) scale(1.04)"; };
+    const onLeave = () => {
+      vid.style.transform = "translate(0,0) scale(1.04)";
+    };
     wrap.addEventListener("mousemove", onMove);
     wrap.addEventListener("mouseleave", onLeave);
-    return () => { wrap.removeEventListener("mousemove", onMove); wrap.removeEventListener("mouseleave", onLeave); };
-  }, []);
-
-
-  const makeMagnetic = useCallback((ref: { current: HTMLAnchorElement | null }) => {
-    const btn = ref.current;
-    if (!btn) return;
-    const inner = btn.querySelector<HTMLElement>(".hr-btn-inner");
-
-    const onMove = (e: MouseEvent) => {
-      const r = btn.getBoundingClientRect();
-      const dx = (e.clientX - r.left - r.width  / 2) * 0.32;
-      const dy = (e.clientY - r.top  - r.height / 2) * 0.32;
-      btn.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
-      if (inner) inner.style.transform = `translate(${dx * 0.55}px,${dy * 0.55}px)`;
-    };
-    const onLeave = () => {
-      btn.style.transform = "";
-      if (inner) inner.style.transform = "";
-    };
-    const onClick = (e: MouseEvent) => {
-      const r = btn.getBoundingClientRect();
-      const ripple = document.createElement("span");
-      ripple.className = "hr-btn-ripple";
-      const size = Math.max(r.width, r.height);
-      ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - r.left - size / 2}px;top:${e.clientY - r.top - size / 2}px`;
-      btn.appendChild(ripple);
-      ripple.addEventListener("animationend", () => ripple.remove());
-    };
-
-    btn.addEventListener("mousemove", onMove);
-    btn.addEventListener("mouseleave", onLeave);
-    btn.addEventListener("click", onClick);
     return () => {
-      btn.removeEventListener("mousemove", onMove);
-      btn.removeEventListener("mouseleave", onLeave);
-      btn.removeEventListener("click", onClick);
+      wrap.removeEventListener("mousemove", onMove);
+      wrap.removeEventListener("mouseleave", onLeave);
     };
-  }, []);
+  }, [canPlayVideo]);
+
+  /* ── Premium magnetic buttons: spring overshoot + shine sweep ── */
+  const makeMagnetic = useCallback(
+    (ref: { current: HTMLAnchorElement | null }) => {
+      const btn = ref.current;
+      if (!btn) return;
+      const inner = btn.querySelector<HTMLElement>(".hr-btn-inner");
+      let raf = 0;
+
+      const onMove = (e: MouseEvent) => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const r = btn.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width; // 0..1
+          const py = (e.clientY - r.top) / r.height;
+          const dx = (e.clientX - r.left - r.width / 2) * 0.34;
+          const dy = (e.clientY - r.top - r.height / 2) * 0.34;
+          btn.style.transform = `translate(${dx}px,${dy}px) scale(1.045)`;
+          btn.style.setProperty("--mx", `${px * 100}%`);
+          btn.style.setProperty("--my", `${py * 100}%`);
+          if (inner)
+            inner.style.transform = `translate(${dx * 0.5}px,${dy * 0.5}px)`;
+        });
+      };
+      const onLeave = () => {
+        cancelAnimationFrame(raf);
+        btn.style.transition =
+          "transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        btn.style.transform = "";
+        if (inner) {
+          inner.style.transition =
+            "transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)";
+          inner.style.transform = "";
+        }
+        window.setTimeout(() => {
+          btn.style.transition = "";
+          if (inner) inner.style.transition = "";
+        }, 660);
+      };
+      const onClick = (e: MouseEvent) => {
+        const r = btn.getBoundingClientRect();
+        const ripple = document.createElement("span");
+        ripple.className =
+          "absolute rounded-full bg-white/20 scale-0 pointer-events-none [animation:btnRipple_0.6s_ease-out_forwards]";
+        const size = Math.max(r.width, r.height) * 1.4;
+        ripple.style.cssText = `width:${size}px;height:${size}px;left:${
+          e.clientX - r.left - size / 2
+        }px;top:${e.clientY - r.top - size / 2}px`;
+        btn.appendChild(ripple);
+        ripple.addEventListener("animationend", () => ripple.remove());
+      };
+
+      btn.addEventListener("mousemove", onMove);
+      btn.addEventListener("mouseleave", onLeave);
+      btn.addEventListener("click", onClick);
+      return () => {
+        cancelAnimationFrame(raf);
+        btn.removeEventListener("mousemove", onMove);
+        btn.removeEventListener("mouseleave", onLeave);
+        btn.removeEventListener("click", onClick);
+      };
+    },
+    []
+  );
 
   useEffect(() => {
     const c1 = makeMagnetic(btn1Ref);
     const c2 = makeMagnetic(btn2Ref);
-    return () => { c1?.(); c2?.(); };
+    return () => {
+      c1?.();
+      c2?.();
+    };
   }, [btns, makeMagnetic]);
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      {/* Keyframes too dynamic (per-click size/position, ambient drift)
+          to precompute as static Tailwind classes. */}
+      <style>{`
+        @keyframes btnRipple { to { transform: scale(3.2); opacity: 0; } }
+        @keyframes glowDrift {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.55; }
+          50% { transform: translate(-46%, -54%) scale(1.12); opacity: 0.75; }
+        }
+        @keyframes shineSweep {
+          0% { transform: translateX(-130%) skewX(-18deg); }
+          100% { transform: translateX(230%) skewX(-18deg); }
+        }
+      `}</style>
 
-      {/* ── SPLASH — slides UP when done ───────────────────────────────── */}
-      <div className={`sp-wrap${splashGone ? " gone" : ""}`} aria-hidden="true">
-        <div className="sp-inner">
-          <div className="sp-headline-row">
+      {/* ── SPLASH — settles out with a soft scale + blur, not a hard slide ── */}
+      <div
+        aria-hidden="true"
+        className={`fixed inset-0 z-[400] flex items-center justify-center bg-black transition-[transform,filter,opacity] duration-[1250ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
+          splashGone
+            ? "-translate-y-[6%] scale-[1.04] opacity-0 blur-[6px] pointer-events-none"
+            : "translate-y-0 scale-100 opacity-100 blur-0"
+        }`}
+      >
+        <div className="flex flex-col items-center gap-[1.1rem]">
+          <div
+            className="flex flex-wrap justify-center gap-[0.3em]"
+            style={{ perspective: "700px" }}
+          >
             {SPLASH_WORDS_TEXT.map((word, i) => (
               <span
                 key={i}
-                className={`sp-word${splashWords[i] ? " show" : ""}`}
-                style={{ transitionDelay: `${i * 0.06}s` }}
+                className={`inline-block font-body font-semibold text-[clamp(2.6rem,7.5vw,6.4rem)] leading-[1.04] tracking-[-0.04em] text-white origin-bottom transition-[opacity,transform,filter] duration-[950ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  splashWords[i]
+                    ? "opacity-100 translate-y-0 blur-0 [transform:rotateX(0deg)]"
+                    : "opacity-0 translate-y-14 blur-[10px] [transform:rotateX(-30deg)]"
+                }`}
+                style={{ transitionDelay: `${i * 0.07}s` }}
               >
                 {word}
               </span>
             ))}
           </div>
-          <div className={`sp-line${splashLine ? " show" : ""}`} />
-          <div className={`sp-sub${splashSub  ? " show" : ""}`}>
+
+          <div
+            className={`h-[1.5px] rounded-sm bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.75)_40%,rgba(255,255,255,0.75)_60%,transparent_100%)] transition-[width,opacity] duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] [transition-delay:0.5s] ${
+              splashLine ? "w-[220px] opacity-100" : "w-0 opacity-0"
+            }`}
+          />
+
+          <div
+            className={`font-body text-[clamp(0.62rem,1.15vw,0.76rem)] font-normal uppercase text-white/30 tracking-[0.32em] transition-[opacity,transform] duration-[800ms] ease-out [transition-delay:0.85s] ${
+              splashSub
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-2"
+            }`}
+          >
             Aniket Jamunde — Portfolio
           </div>
         </div>
       </div>
 
       {/* ── HERO ───────────────────────────────────────────────────────── */}
-      <div className="hr-wrap" ref={wrapRef}>
+      <div
+        ref={wrapRef}
+        className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden"
+      >
+        {/* Poster image — always rendered, doubles as the LCP element and
+            the entire background on mobile / reduced-motion / slow connections */}
+        <Image
+          src="/hero-poster.jpg"
+          alt="Aniket Jamunde — Web & Flutter developer"
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          className={`absolute inset-0 object-cover transition-opacity duration-[1200ms] ${
+            canPlayVideo && videoShow ? "opacity-0" : "opacity-100"
+          }`}
+        />
 
-        <video
-          ref={videoRef}
-          className={`hr-video${videoShow ? " show" : ""}`}
-          autoPlay muted loop playsInline aria-hidden="true"
-          style={{ transition: "opacity 1.2s ease, transform 0.12s ease" }}
-        >
-          <source src="/bg.mp4" type="video/mp4" />
-        </video>
+        {canPlayVideo && (
+          <video
+            ref={videoRef}
+            aria-hidden="true"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="none"
+            poster="/hero-poster.jpg"
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[2200ms] ease-linear will-change-[opacity] ${
+              videoShow ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ transition: "opacity 2.2s ease, transform 0.12s ease" }}
+          >
+            <source src="/bg.webm" type="video/webm" />
+          </video>
+        )}
 
-        <div className="hr-overlay" aria-hidden="true" />
-        <div className="hr-grain"   aria-hidden="true" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_75%_55%_at_50%_45%,rgba(1,3,9,0.35)_0%,transparent_68%),linear-gradient(to_bottom,rgba(0,0,0,0.62)_0%,rgba(0,0,0,0.08)_35%,rgba(0,0,0,0.08)_60%,rgba(0,0,0,0.80)_100%),linear-gradient(to_right,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.28)_22%,transparent_42%),linear-gradient(to_left,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.28)_22%,transparent_42%)]"
+        />
 
-        <main className="hr-content">
+        {/* Soft all-sides vignette — blends the video/poster edges into the
+            black page background so the frame doesn't look "cut out".
+            A single radial-gradient darkening toward every edge/corner,
+            plus a hairline inner shadow for a subtle frame. Pure CSS,
+            no extra image or layout cost. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_120%_100%_at_50%_50%,transparent_45%,rgba(0,0,0,0.55)_100%)] [box-shadow:inset_0_0_min(18vw,220px)_min(9vw,110px)_rgba(0,0,0,0.85)]"
+        />
 
+        <div
+          aria-hidden="true"
+          className="grain-layer pointer-events-none absolute inset-0 z-[2] animate-grain opacity-[0.02]"
+        />
+
+        {/* Ambient drifting glow behind the headline — pure CSS, GPU-cheap */}
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute left-1/2 top-[42%] z-[2] h-[420px] w-[620px] rounded-full bg-[radial-gradient(circle,rgba(45,125,255,0.28)_0%,transparent_70%)] blur-[60px] transition-opacity duration-[1400ms] ${
+            glow ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            animation: glow ? "glowDrift 9s ease-in-out infinite" : "none",
+          }}
+        />
+
+        <main className="relative z-[3] mt-[-2rem] flex w-full max-w-[1080px] flex-col items-center px-[clamp(1.5rem,4vw,3rem)] text-center">
           {/* Badge */}
-          <div className={`hr-badge${badge ? " show" : ""}`}>
-            <span className="hr-badge-dot" />
-            <span className="hr-badge-text">Crafting Unique Branding Solutions</span>
+          <div
+            className={`chrome-border relative mb-[clamp(1.5rem,3vw,2.2rem)] inline-flex cursor-default items-center gap-[0.62rem] rounded-full bg-[linear-gradient(180deg,rgba(7,18,40,0.56)_0%,rgba(3,8,19,0.13)_100%)] px-[1.35rem] py-[0.46rem] pl-[0.92rem] font-body text-[clamp(0.7rem,1vw,0.82rem)] font-normal tracking-[0.015em] text-white/70 backdrop-blur-[14px] transition-[opacity,transform,filter,box-shadow,color] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-white/95 hover:[box-shadow:inset_0_0_18px_rgba(45,125,255,0.55),0_0_28px_rgba(24,88,238,0.30),0_8px_28px_rgba(0,0,0,0.40)] ${
+              badge
+                ? "opacity-100 translate-y-0 scale-100 blur-0"
+                : "opacity-0 translate-y-4 scale-[0.9] blur-[6px]"
+            }`}
+          >
+            <span
+              className={`relative z-[1] h-[6px] w-[6px] shrink-0 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,1)] transition-[opacity,transform] duration-500 ease-snap [transition-delay:0.15s] animate-dot-pulse ${
+                badge
+                  ? "opacity-100 translate-x-0 scale-100"
+                  : "opacity-0 -translate-x-1.5 scale-0"
+              }`}
+            />
+            <span className="relative z-[1]">
+              Crafting Unique Branding Solutions
+            </span>
           </div>
 
-          {/* Headline */}
-          <div className="hr-title-wrap" role="heading" aria-level={1}>
+          {/* Headline — blur-to-focus reveal instead of a flat slide */}
+          <div
+            role="heading"
+            aria-level={1}
+            className="mb-[clamp(1.6rem,3vw,2.2rem)] flex max-w-[900px] flex-wrap justify-center gap-x-[0.28em] gap-y-[0.2em]"
+            style={{ perspective: "900px" }}
+          >
             {HEADLINE_WORDS.map((word, i) => (
               <span
                 key={i}
-                className={`hr-title-word${titleWords[i] ? " show" : ""}`}
-                style={{ transitionDelay: `${i * 0.06}s` }}
+                className={`inline-block font-body text-[clamp(2.4rem,6.4vw,5.8rem)] font-medium leading-[1.09] tracking-[-0.02em] text-white [text-shadow:0_2px_52px_rgba(0,0,0,0.5)] origin-bottom transition-[opacity,transform,filter] duration-[950ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  titleWords[i]
+                    ? "opacity-100 translate-y-0 blur-0 [transform:rotateX(0deg)]"
+                    : "opacity-0 translate-y-12 blur-[12px] [transform:rotateX(-22deg)]"
+                }`}
+                style={{ transitionDelay: `${i * 0.07}s` }}
               >
                 {word}
               </span>
@@ -494,35 +374,106 @@ export default function Hero() {
           </div>
 
           {/* Description */}
-          <div className={`hr-desc-wrap${desc ? " show" : ""}`}>
-            <p className="hr-desc">
-              Hi, I&apos;m Aniket Jamunde — a Web Developer and Flutter Developer.
-              I build modern websites, mobile apps, and digital experiences
-              that help businesses grow.
+          <div
+            className={`max-w-[820px] transition-[opacity,transform,filter] duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              desc
+                ? "opacity-100 translate-y-0 blur-0"
+                : "opacity-0 translate-y-5 blur-[4px]"
+            }`}
+          >
+            <p className="font-body text-[clamp(0.9rem,1.32vw,1.08rem)] font-normal leading-[1.7] text-white/70">
+              Hi, I&apos;m Aniket Jamunde — a Web Developer and Flutter
+              Developer. I build modern websites, mobile apps, and digital
+              experiences that help businesses grow.
             </p>
           </div>
 
-          {/* CTA Buttons */}
-          <div className={`hr-btns${btns ? " show" : ""}`}>
-            <a href="#contact" className="hr-btn" ref={btn1Ref}>
-              <span className="hr-btn-inner">Start Your Project</span>
+          {/* CTA Buttons — liquid glass, magnetic pull, cursor-tracked sheen */}
+          <div
+            className={`mt-[clamp(4rem,4vw,2.8rem)] flex flex-wrap justify-center gap-[1.4rem] transition-[opacity,transform,filter] duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              btns
+                ? "opacity-100 translate-y-0 blur-0"
+                : "opacity-0 translate-y-8 blur-[4px]"
+            }`}
+          >
+            <a
+              href="#contact"
+              ref={btn1Ref}
+              className="chrome-border group relative inline-flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-[18px] bg-[linear-gradient(180deg,rgba(7,18,40,0.14)_0%,rgba(3,8,19,0.11)_100%)] px-[2.6rem] py-[0.95rem] font-body text-[clamp(0.84rem,1.1vw,0.95rem)] font-medium text-white will-change-transform transition-[box-shadow,color] duration-[400ms] active:scale-[0.96] hover:text-white/95 hover:[box-shadow:inset_0_0_22px_rgba(45,83,255,0.6),0_0_32px_rgba(24,88,238,0.35),0_10px_32px_rgba(0,0,0,0.45)]"
+            >
+              {/* cursor-tracked soft light */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                  background:
+                    "radial-gradient(120px circle at var(--mx,50%) var(--my,50%), rgba(90,160,255,0.35), transparent 70%)",
+                }}
+              />
+              {/* diagonal shine sweep on hover */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 bg-[linear-gradient(115deg,transparent,rgba(255,255,255,0.35),transparent)] opacity-0 group-hover:opacity-100"
+                style={{
+                  animation: "shineSweep 1.1s ease-in-out",
+                  animationPlayState: "paused",
+                }}
+                onAnimationEnd={(e) => {
+                  (e.currentTarget as HTMLElement).style.animationPlayState =
+                    "paused";
+                }}
+              />
+              <span className="hr-btn-inner relative z-[1] block pointer-events-none">
+                Start Your Project
+              </span>
             </a>
-            <a href="#projects" className="hr-btn secondary" ref={btn2Ref}>
-              <span className="hr-btn-inner">See Projects</span>
+            <a
+              href="#projects"
+              ref={btn2Ref}
+              className="chrome-border group relative inline-flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-[18px] bg-[linear-gradient(180deg,rgba(7,18,40,0.14)_0%,rgba(3,8,19,0.11)_100%)] px-[2.6rem] py-[0.95rem] font-body text-[clamp(0.84rem,1.1vw,0.95rem)] font-medium text-white will-change-transform transition-[box-shadow,color] duration-[400ms] active:scale-[0.96] hover:text-white/95 hover:[box-shadow:inset_0_0_22px_rgba(45,83,255,0.6),0_0_32px_rgba(24,88,238,0.35),0_10px_32px_rgba(0,0,0,0.45)]"
+            >
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                  background:
+                    "radial-gradient(120px circle at var(--mx,50%) var(--my,50%), rgba(90,160,255,0.35), transparent 70%)",
+                }}
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 bg-[linear-gradient(115deg,transparent,rgba(255,255,255,0.35),transparent)] opacity-0 group-hover:opacity-100"
+                style={{
+                  animation: "shineSweep 1.1s ease-in-out",
+                  animationPlayState: "paused",
+                }}
+                onAnimationEnd={(e) => {
+                  (e.currentTarget as HTMLElement).style.animationPlayState =
+                    "paused";
+                }}
+              />
+              <span className="hr-btn-inner relative z-[1] block pointer-events-none">
+                See Projects
+              </span>
             </a>
           </div>
-
         </main>
 
         {/* Scroll hint */}
-        <div className={`hr-scroll${scroll ? " show" : ""}`} aria-hidden="true">
+        <div
+          aria-hidden="true"
+          className={`absolute bottom-[clamp(1.6rem,3.5vh,2.8rem)] left-1/2 z-[3] flex -translate-x-1/2 items-center gap-[1.3rem] whitespace-nowrap font-body text-[0.6rem] font-normal tracking-[0.12rem] text-white/30 transition-opacity duration-[1200ms] ${
+            scroll ? "opacity-100" : "opacity-0"
+          }`}
+        >
           <span>Scroll Down</span>
-          <div className="hr-scroll-line" />
-          <div className="hr-mouse"><div className="hr-mouse-dot" /></div>
-          <div className="hr-scroll-line" />
+          <div className="h-px w-14 shrink-0 bg-white/10" />
+          <div className="flex h-[23px] w-4 shrink-0 items-start justify-center rounded-[20px] border-[1.5px] border-white/25 pt-[5px]">
+            <div className="h-1 w-0.5 animate-mouse-dot rounded-sm bg-white/55" />
+          </div>
+          <div className="h-px w-14 shrink-0 bg-white/10" />
           <span>to see projects</span>
         </div>
-
       </div>
     </>
   );

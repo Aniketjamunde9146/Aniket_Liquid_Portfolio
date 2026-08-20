@@ -1,0 +1,19 @@
+
+> aniketwebdev@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 16944, using available port 3002 instead.
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://192.168.1.8:3002
+- Environments: .env.local
+✓ Ready in 2.0s
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          16944
+- Dir:          D:\Github Clones\Aniket_Liquid_Portfolio
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 16944 /F to stop it.
+[?25h

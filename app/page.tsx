@@ -36,4 +36,6 @@ export default async function Page() {
       
     </SplashGate>
   );
+
 }
+
