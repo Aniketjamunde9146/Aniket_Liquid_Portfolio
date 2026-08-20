@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: "https://aniketwebdev.in/sitemap.xml",
-    host: "https://aniketwebdev.in",
+    host: "aniketwebdev.in", 
   };
 }
