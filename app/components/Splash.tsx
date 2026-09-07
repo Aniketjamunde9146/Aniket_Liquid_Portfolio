@@ -1,130 +1,120 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
-  .sp-wrap {
-    position: fixed; inset: 0; z-index: 400;
-    background: #000;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .sp-wrap.gone {
-    transform: translateY(-100%);
-    transition: transform 1.15s cubic-bezier(0.76, 0, 0.24, 1);
-    pointer-events: none;
-  }
-
-  .sp-inner { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
-
-  .sp-headline-row {
-    display: flex; gap: 0.3em; perspective: 600px;
-    flex-wrap: wrap; justify-content: center;
-  }
-
-  .sp-word {
-    display: inline-block;
-    font-family: 'DM Sans', sans-serif; font-weight: 600;
-    font-size: clamp(2.6rem, 7.5vw, 6.4rem);
-    color: #fff; letter-spacing: -0.04em; line-height: 1.04;
-    opacity: 0; transform: translateY(48px) rotateX(-25deg);
-    transform-origin: 50% 100%;
-    transition: opacity 0.82s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.82s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .sp-word.show { opacity: 1; transform: translateY(0) rotateX(0deg); }
-
-  .sp-line {
-    width: 0; height: 1.5px;
-    background: linear-gradient(90deg,
-      transparent 0%, rgba(255,255,255,0.75) 40%,
-      rgba(255,255,255,0.75) 60%, transparent 100%
-    );
-    border-radius: 2px; opacity: 0;
-    transition: width 1.4s cubic-bezier(0.25, 1, 0.5, 1) 0.48s,
-                opacity 0.3s ease 0.48s;
-  }
-  .sp-line.show { width: 220px; opacity: 1; }
-
-  .sp-sub {
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.62rem, 1.15vw, 0.76rem); font-weight: 400;
-    color: rgba(255,255,255,0.28); letter-spacing: 0.32em; text-transform: uppercase;
-    opacity: 0; transform: translateY(8px);
-    transition: opacity 0.72s ease 0.8s, transform 0.72s ease 0.8s;
-  }
-  .sp-sub.show { opacity: 1; transform: translateY(0); }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-`;
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 const WORDS = ["Bring", "Ideas", "to", "Reality..."];
 
-const T = {
-  WORD_START : 160,
-  WORD_STEP  : 110,
-  LINE       : 620,
-  SUB        : 920,
-  GONE       : 2850,
-} as const;
-
 interface SplashProps {
-  onDone?: () => void; // called when curtain finishes rising
+  onDone?: () => void;
 }
 
 export default function Splash({ onDone }: SplashProps) {
-  const [words, setWords] = useState<boolean[]>(WORDS.map(() => false));
-  const [line,  setLine]  = useState(false);
-  const [sub,   setSub]   = useState(false);
-  const [gone,  setGone]  = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<HTMLDivElement>(null);
+  const wordRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const hasRun = useRef(false); // guards against Strict Mode's double effect invocation
 
   useEffect(() => {
-    const at = (fn: () => void, ms: number) => setTimeout(fn, ms);
+    if (hasRun.current) return;
+    hasRun.current = true;
 
-    const wordIds = WORDS.map((_, i) =>
-      at(() => setWords(prev => { const n = [...prev]; n[i] = true; return n; }),
-        T.WORD_START + i * T.WORD_STEP)
-    );
+    const wrap = wrapRef.current;
+    const line = lineRef.current;
+    const sub = subRef.current;
+    const words = wordRefs.current.filter(Boolean) as HTMLSpanElement[];
+    if (!wrap || !line || !sub || words.length === 0) return;
 
-    const ids = [
-      at(() => setLine(true), T.LINE),
-      at(() => setSub(true),  T.SUB),
-      at(() => setGone(true), T.GONE),
-      // fire onDone after transition completes (1150ms)
-      at(() => onDone?.(),    T.GONE + 1150),
-    ];
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    return () => [...wordIds, ...ids].forEach(clearTimeout);
+    if (reduceMotion) {
+      gsap.set([...words, line, sub], { opacity: 1, y: 0, scaleX: 1, filter: "blur(0px)" });
+      const id = setTimeout(() => onDone?.(), 400);
+      return () => clearTimeout(id);
+    }
+
+    gsap.set(words, { opacity: 0, y: 36, filter: "blur(14px)" });
+    gsap.set(line, { scaleX: 0, opacity: 0, transformOrigin: "50% 50%" });
+    gsap.set(sub, { opacity: 0, y: 8, filter: "blur(6px)" });
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ delay: 0.15 });
+
+      tl.to(words, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.09,
+      });
+
+      tl.to(line, { scaleX: 1, opacity: 1, duration: 0.9, ease: "power2.out" }, "-=0.45");
+
+      tl.to(
+        sub,
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, ease: "power2.out" },
+        "-=0.55"
+      );
+
+      tl.to(
+        [words, line, sub],
+        { opacity: 0, filter: "blur(10px)", duration: 0.4, ease: "power1.in" },
+        "+=0.9"
+      );
+
+      tl.to(
+        wrap,
+        {
+          yPercent: -100,
+          duration: 1.1,
+          ease: "power4.inOut",
+          onComplete: () => onDone?.(),
+        },
+        "-=0.15"
+      );
+    }, wrapRef);
+
+    return () => ctx.revert();
   }, [onDone]);
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <div className={`sp-wrap${gone ? " gone" : ""}`} aria-hidden="true">
-        <div className="sp-inner">
-          <div className="sp-headline-row">
-            {WORDS.map((word, i) => (
-              <span
-                key={i}
-                className={`sp-word${words[i] ? " show" : ""}`}
-                style={{ transitionDelay: `${i * 0.06}s` }}
-              >
-                {word}
-              </span>
-            ))}
-          </div>
-          <div className={`sp-line${line ? " show" : ""}`} />
-          <div className={`sp-sub${sub  ? " show" : ""}`}>
-            Aniket Jamunde — Portfolio
-          </div>
+    <div
+      ref={wrapRef}
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-[400] flex items-center justify-center bg-black will-change-transform"
+    >
+      <span className="sr-only">Loading Aniket Jamunde&apos;s portfolio</span>
+
+      <div className="flex flex-col items-center gap-[1.1rem]" aria-hidden="true">
+        <div className="flex flex-wrap justify-center gap-[0.3em]" style={{ perspective: "600px" }}>
+          {WORDS.map((word, i) => (
+            <span
+              key={word + i}
+              ref={(el) => {
+                wordRefs.current[i] = el;
+              }}
+              className="inline-block font-body text-[clamp(2.6rem,7.5vw,6.4rem)] font-semibold leading-[1.04] tracking-[-0.04em] text-white will-change-transform"
+            >
+              {word}
+            </span>
+          ))}
+        </div>
+
+        <div
+          ref={lineRef}
+          className="h-[1.5px] w-[220px] rounded-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.75)_40%,rgba(255,255,255,.75)_60%,transparent_100%)] will-change-transform"
+        />
+
+        <div
+          ref={subRef}
+          className="font-body text-[clamp(0.62rem,1.15vw,0.76rem)] font-normal uppercase tracking-[0.32em] text-white/30 will-change-transform"
+        >
+          Aniket Jamunde — Portfolio
         </div>
       </div>
-    </>
+    </div>
   );
 }

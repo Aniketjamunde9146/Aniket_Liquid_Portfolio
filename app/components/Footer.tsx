@@ -3,6 +3,32 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
+/* ─────────────────────────────────────────────────────────────
+   Footer — restyled to match the monochrome glass theme used
+   across Hero/About/TechStack/Testimonials/Contact.
+
+   Removed vs. the previous version, and why:
+   - Background video (bg2.mp4) — every other section is a static
+     black background with blurred glow divs; this was the last
+     video on the site (Contact's was already removed). Gone.
+   - Animated SVG grain (feTurbulence, steps() timer) + scanline
+     overlay + two infinitely-pulsing blobs — removed, same as
+     every other section.
+   - Blue/purple gradient logo text, gradient nav-icon hover color,
+     gradient CTA button with chrome-border mask trick — replaced
+     with the site's plain white logo and bordered-glass pill/
+     button pattern.
+   - Hand-rolled <style> block — converted to Tailwind utility
+     classes in JSX; only entrance-related keyframes stay inline.
+
+   Kept, because it's real functionality, not decoration:
+   - IntersectionObserver-driven one-time entrance fade (same
+     pattern as every other section, applied per sub-block here
+     instead of the whole section at once).
+   - Full nav link list, socials, legal links, back-to-top button,
+     dynamic copyright year.
+───────────────────────────────────────────────────────────── */
+
 const NAV_LINKS = [
   {
     label: "Home",
@@ -107,9 +133,7 @@ const NAV_LINKS = [
   },
 ];
 
-const LEGAL_LINKS = [
-  { label: "Terms & Conditions", href: "/terms-and-conditions" },
-];
+const LEGAL_LINKS = [{ label: "Terms & Conditions", href: "/terms-and-conditions" }];
 
 const SOCIALS = [
   {
@@ -150,22 +174,29 @@ const SOCIALS = [
   },
 ];
 
+const BTN_PRIMARY =
+  "group relative inline-flex flex-shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl bg-white px-9 py-3 " +
+  "font-body text-[clamp(.84rem,1.1vw,.95rem)] font-medium text-black no-underline cursor-pointer " +
+  "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(255,255,255,.25)]";
+
 export default function Footer() {
   const sectionRef = useRef<HTMLElement>(null);
   const [show, setShow] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const el = sectionRef.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setShow(true); }, { threshold: 0.06 });
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setShow(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.06 }
+    );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const v = videoRef.current; if (!v) return;
-    v.muted = true;
-    v.play().catch(() => {});
   }, []);
 
   const year = new Date().getFullYear();
@@ -178,432 +209,169 @@ export default function Footer() {
     }
     if (href.startsWith("#")) {
       e.preventDefault();
-      const target = document.querySelector(href);
-      if (target) target.scrollIntoView({ behavior: "smooth" });
+      document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   return (
-    <>
+    <footer
+      id="footer"
+      ref={sectionRef}
+      className="relative isolate overflow-hidden bg-black pt-[clamp(4rem,8vh,7rem)] pb-[clamp(2rem,4vh,3rem)] [content-visibility:auto] [contain-intrinsic-size:900px]"
+    >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
-        .ft-root {
-          position: relative;
-          overflow: hidden;
-          font-family: 'DM Sans', sans-serif;
-          isolation: isolate;
-        }
-
-        .ft-video {
-          position: absolute; inset: 0; z-index: 0;
-          width: 100%; height: 100%;
-          object-fit: cover;
-          pointer-events: none;
-          opacity: .60;
-          filter: saturate(.6) brightness(.55);
-        }
-
-        .ft-overlay {
-          position: absolute; inset: 0; z-index: 1;
-          background: linear-gradient(
-            to bottom,
-            rgba(0,0,0,.78) 0%,
-            rgba(0,0,0,.72) 60%,
-            rgba(0,0,0,.92) 100%
-          );
-        }
-
-        .ft-top-fade {
-          position: absolute; top: 0; left: 0; right: 0; height: 120px; z-index: 2;
-          background: linear-gradient(to bottom, #000 0%, transparent 100%);
-          pointer-events: none;
-        }
-
-        .ft-grain {
-          position: absolute; inset: 0; z-index: 3; pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-          background-size: 180px 180px; mix-blend-mode: overlay;
-          opacity: .045; animation: ftGrain .2s steps(1) infinite;
-        }
-        @keyframes ftGrain {
-          0%{background-position:0 0} 25%{background-position:-32px 14px}
-          50%{background-position:18px -24px} 75%{background-position:-12px 28px}
-        }
-
-        .ft-scan {
-          position: absolute; inset: 0; z-index: 3; pointer-events: none;
-          background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px);
-          opacity: .5;
-        }
-
-        .ft-blob-l {
-          position: absolute; z-index: 2; pointer-events: none;
-          width: clamp(280px,38vw,500px); height: clamp(280px,38vw,500px);
-          left: -10%; bottom: 0%; border-radius: 50%;
-          background: radial-gradient(circle, rgba(70,130,255,.09) 0%, transparent 68%);
-          animation: ftBlob 10s ease-in-out infinite;
-        }
-        .ft-blob-r {
-          position: absolute; z-index: 2; pointer-events: none;
-          width: clamp(240px,32vw,440px); height: clamp(240px,32vw,440px);
-          right: -8%; top: 10%; border-radius: 50%;
-          background: radial-gradient(circle, rgba(139,92,246,.08) 0%, transparent 68%);
-          animation: ftBlob 13s ease-in-out infinite reverse;
-        }
-        @keyframes ftBlob { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.14);opacity:.7} }
-
-        .ft-topline {
-          position: absolute; top: 0; left: 0; right: 0; height: 1px; z-index: 5;
-          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.06) 20%, rgba(80,140,255,.20) 50%, rgba(255,255,255,.06) 80%, transparent 100%);
-        }
-
-        .ft-inner {
-          position: relative; z-index: 6;
-          max-width: 1200px; margin: 0 auto;
-          padding: clamp(4rem,8vh,7rem) clamp(1.5rem,5vw,3.5rem) clamp(2rem,4vh,3rem);
-        }
-
-        .ft-top {
-          display: grid;
-          grid-template-columns: 1fr 1.15fr;
-          gap: clamp(2rem,5vw,5rem);
-          padding-bottom: clamp(2.5rem,5vw,4rem);
-          border-bottom: 1px solid rgba(255,255,255,.07);
-          margin-bottom: clamp(2rem,4vw,3rem);
-          align-items: start;
-        }
-
-        .ft-brand {
-          display: flex; flex-direction: column; gap: 1.2rem;
-          opacity: 0; transform: translateY(28px);
-          transition: opacity .85s ease .1s, transform .85s cubic-bezier(.34,1.45,.64,1) .1s;
-        }
-        .ft-brand.show { opacity: 1; transform: none; }
-
-        .ft-logo {
-          font-size: clamp(1.7rem,3.5vw,2.6rem); font-weight: 700;
-          color: #fff; letter-spacing: -.04em; line-height: 1;
-          display: inline-block; text-decoration: none;
-        }
-        .ft-logo span {
-          background: linear-gradient(90deg, #6ea8ff, #b266ff);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-
-        .ft-tagline {
-          font-size: clamp(.84rem,1.1vw,.96rem); font-weight: 400;
-          color: rgba(255,255,255,.35); line-height: 1.75;
-          max-width: 340px;
-        }
-
-        .ft-socials {
-          display: flex; flex-wrap: wrap; gap: .7rem; margin-top: .4rem;
-        }
-        .ft-social {
-          width: 40px; height: 40px; border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,.05);
-          border: 1px solid rgba(255,255,255,.08);
-          color: rgba(255,255,255,.45);
-          text-decoration: none;
-          position: relative; overflow: hidden;
-          transition: color .3s ease, border-color .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
-        }
-        .ft-social::before {
-          content: ''; position: absolute; inset: 0; border-radius: 12px;
-          background: linear-gradient(135deg, rgba(80,140,255,.15), rgba(139,92,246,.15));
-          opacity: 0; transition: opacity .3s ease;
-        }
-        .ft-social:hover {
-          color: #fff;
-          border-color: rgba(80,140,255,.4);
-          transform: translateY(-4px) scale(1.08);
-          box-shadow: 0 8px 24px rgba(80,140,255,.25);
-        }
-        .ft-social:hover::before { opacity: 1; }
-        .ft-social svg { position: relative; z-index: 1; }
-
-        .ft-nav-wrap {
-          opacity: 0; transform: translateY(28px);
-          transition: opacity .85s ease .2s, transform .85s cubic-bezier(.34,1.45,.64,1) .2s;
-        }
-        .ft-nav-wrap.show { opacity: 1; transform: none; }
-
-        .ft-nav-label {
-          font-size: .62rem; font-weight: 500;
-          color: rgba(255,255,255,.22); letter-spacing: .2em; text-transform: uppercase;
-          margin-bottom: 1.2rem;
-        }
-
-        .ft-nav {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: .7rem 2rem;
-          list-style: none; padding: 0; margin: 0;
-        }
-
-        .ft-nav-link {
-          font-size: clamp(.84rem,1.05vw,.92rem); font-weight: 400;
-          color: rgba(255,255,255,.38);
-          text-decoration: none;
-          display: inline-flex; align-items: center; gap: .55rem;
-          position: relative;
-          transition: color .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
-        }
-        .ft-nav-link svg {
-          flex-shrink: 0; opacity: .55;
-          transition: opacity .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1), color .3s ease;
-        }
-        .ft-nav-link:hover { color: #fff; transform: translateX(4px); }
-        .ft-nav-link:hover svg { opacity: 1; color: #6ea8ff; transform: scale(1.1); }
-
-        .ft-cta-strip {
-          display: flex; align-items: center; justify-content: space-between;
-          gap: 2rem; flex-wrap: wrap;
-          padding: clamp(1.6rem,3vw,2.2rem) clamp(1.5rem,3vw,2.2rem);
-          border-radius: 20px;
-          background: rgba(8,12,24,.60);
-          border: 1px solid rgba(255,255,255,.07);
-          backdrop-filter: blur(20px);
-          margin-bottom: clamp(2rem,4vw,3rem);
-          opacity: 0; transform: translateY(24px);
-          transition: opacity .85s ease .3s, transform .85s cubic-bezier(.34,1.45,.64,1) .3s;
-          position: relative; overflow: hidden;
-        }
-        .ft-cta-strip.show { opacity: 1; transform: none; }
-        .ft-cta-strip::before {
-          content: ''; position: absolute; inset: -1px; border-radius: 21px; padding: 1px;
-          background: linear-gradient(135deg, rgba(255,255,255,.40), rgba(80,140,255,.70), transparent 55%, rgba(139,92,246,.60));
-          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor; mask-composite: exclude;
-          opacity: .5; pointer-events: none;
-        }
-
-        .ft-cta-text { position: relative; z-index: 1; }
-        .ft-cta-title {
-          font-size: clamp(1.1rem,2.2vw,1.6rem); font-weight: 600;
-          color: #fff; letter-spacing: -.02em; margin: 0 0 .3rem;
-        }
-        .ft-cta-sub {
-          font-size: clamp(.8rem,1.05vw,.9rem); font-weight: 400;
-          color: rgba(255,255,255,.35); margin: 0;
-        }
-
-        .ft-btn {
-          position: relative; flex-shrink: 0;
-          font-family: 'DM Sans', sans-serif; font-weight: 500;
-          font-size: clamp(.84rem,1.1vw,.95rem);
-          padding: .75rem 2.2rem; border-radius: 12px;
-          text-decoration: none; display: inline-flex;
-          align-items: center; justify-content: center; gap: .5rem;
-          color: #fff;
-          background: linear-gradient(180deg, rgba(7,18,40,.56) 0%, rgba(3,8,19,.13) 100%);
-          border: 1px solid transparent; overflow: hidden; cursor: pointer;
-          transition: transform .4s cubic-bezier(.25,1,.5,1), box-shadow .4s ease;
-          z-index: 1;
-        }
-        .ft-btn::before {
-          content: ''; position: absolute; inset: -1px; border-radius: 13px; padding: 1.5px;
-          background: linear-gradient(135deg, rgba(255,255,255,.70) 0%, rgba(40,110,250,.80) 25%, rgba(10,30,80,.18) 50%, rgba(45,120,255,.90) 75%, rgba(255,255,255,.60) 100%);
-          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor; mask-composite: exclude;
-          pointer-events: none; transition: background .4s ease;
-        }
-        .ft-btn::after {
-          content: ''; position: absolute; inset: 0; border-radius: 12px;
-          background: radial-gradient(circle at 50% 120%, rgba(45,130,255,.28) 0%, transparent 68%);
-          opacity: .38; pointer-events: none; transition: opacity .4s ease;
-        }
-        .ft-btn:hover {
-          transform: translateY(-3px);
-          box-shadow: inset 0 0 18px rgba(45,125,255,.55), 0 0 28px rgba(24,88,238,.30), 0 8px 28px rgba(0,0,0,.40);
-        }
-        .ft-btn:hover::before {
-          background: linear-gradient(225deg, rgba(255,255,255,.95) 0%, rgba(65,145,255,1) 30%, rgba(15,45,120,.38) 50%, rgba(90,170,255,1) 80%, rgba(255,255,255,.90) 100%);
-        }
-        .ft-btn:hover::after { opacity: .58; }
-        .ft-btn:active { transform: translateY(-1px) scale(.98) !important; }
-        .ft-btn-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: .45rem; pointer-events: none; }
-
-        .ft-bottom {
-          display: flex; align-items: center; justify-content: space-between;
-          flex-wrap: wrap; gap: 1rem;
-          opacity: 0; transform: translateY(16px);
-          transition: opacity .8s ease .4s, transform .8s ease .4s;
-        }
-        .ft-bottom.show { opacity: 1; transform: none; }
-
-        .ft-copy-group {
-          display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem;
-        }
-
-        .ft-copy {
-          font-size: clamp(.72rem,.9vw,.8rem); font-weight: 400;
-          color: rgba(255,255,255,.22); line-height: 1.5;
-        }
-        .ft-copy a { color: rgba(255,255,255,.38); text-decoration: none; transition: color .3s; }
-        .ft-copy a:hover { color: rgba(255,255,255,.75); }
-
-        .ft-legal {
-          display: flex; align-items: center; gap: .9rem;
-        }
-        .ft-legal-link {
-          font-size: clamp(.72rem,.9vw,.8rem); font-weight: 400;
-          color: rgba(255,255,255,.3); text-decoration: none;
-          transition: color .3s ease;
-        }
-        .ft-legal-link:hover { color: rgba(255,255,255,.8); }
-
-        .ft-back-top {
-          display: inline-flex; align-items: center; gap: .45rem;
-          font-size: .72rem; font-weight: 500;
-          color: rgba(255,255,255,.28); letter-spacing: .06em; text-transform: uppercase;
-          cursor: pointer; border: none; background: none;
-          font-family: 'DM Sans', sans-serif;
-          transition: color .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
-        }
-        .ft-back-top:hover { color: rgba(255,255,255,.72); transform: translateY(-2px); }
-        .ft-back-top svg { transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
-        .ft-back-top:hover svg { transform: translateY(-4px); }
-
-        @media (min-width: 900px) {
-          .ft-nav { grid-template-columns: repeat(3, 1fr); }
-        }
-
-        @media (max-width: 720px) {
-          .ft-top { grid-template-columns: 1fr; gap: 2.5rem; }
-          .ft-nav { grid-template-columns: repeat(2, 1fr); }
-          .ft-cta-strip { flex-direction: column; align-items: flex-start; gap: 1.4rem; }
-          .ft-btn { width: 100%; }
-          .ft-bottom { flex-direction: column; align-items: center; text-align: center; }
-          .ft-copy-group { justify-content: center; }
-        }
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
         }
       `}</style>
 
-      <footer id="footer" className="ft-root" ref={sectionRef}>
+      <div className="absolute inset-x-0 top-0 z-[3] h-px bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.08)_50%,transparent_100%)]" />
 
-        <video
-          ref={videoRef}
-          className="ft-video"
-          autoPlay
-          muted
-          loop
-          playsInline
-          aria-hidden="true"
+      {/* Static ambient glow — same treatment as every other section */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-[-10%] z-0 h-[clamp(280px,38vw,500px)] w-[clamp(280px,38vw,500px)] rounded-full bg-white/[.05] blur-[130px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-8%] top-[10%] z-0 h-[clamp(240px,32vw,440px)] w-[clamp(240px,32vw,440px)] rounded-full bg-white/[.04] blur-[110px]"
+      />
+
+      <div className="relative z-[4] mx-auto max-w-[1200px] px-[clamp(1.5rem,5vw,3.5rem)]">
+        {/* ── Top: brand + nav ── */}
+        <div
+          className={`mb-[clamp(2rem,4vw,3rem)] grid grid-cols-1 gap-[clamp(2rem,5vw,5rem)] border-b border-white/[.07] pb-[clamp(2.5rem,5vw,4rem)] md:grid-cols-[1fr_1.15fr] ${
+            show ? "" : ""
+          }`}
         >
-          <source src="/bg2.mp4" type="video/mp4" />
-        </video>
-
-        <div className="ft-overlay" />
-        <div className="ft-top-fade" />
-        <div className="ft-blob-l" aria-hidden="true" />
-        <div className="ft-blob-r" aria-hidden="true" />
-        <div className="ft-grain" aria-hidden="true" />
-        <div className="ft-scan" aria-hidden="true" />
-        <div className="ft-topline" />
-
-        <div className="ft-inner">
-
-          <div className="ft-top">
-            <div className={`ft-brand${show ? " show" : ""}`}>
-              <a
-                href="#"
-                className="ft-logo"
-                onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              >
-                Aniket<span>.</span>
-              </a>
-              <p className="ft-tagline">
-                Web Developer &amp; Flutter Developer crafting fast, beautiful,
-                and user-friendly digital products that help businesses grow.
-              </p>
-              <div className="ft-socials">
-                {SOCIALS.map(s => (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ft-social"
-                    aria-label={s.label}
-                    title={s.label}
-                  >
-                    {s.icon}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            <div className={`ft-nav-wrap${show ? " show" : ""}`}>
-              <p className="ft-nav-label">Navigation</p>
-              <ul className="ft-nav">
-                {NAV_LINKS.map(link => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="ft-nav-link"
-                      onClick={e => handleNavClick(e, link.href)}
-                    >
-                      {link.icon}
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className={`ft-cta-strip${show ? " show" : ""}`}>
-            <div className="ft-cta-text">
-              <h3 className="ft-cta-title">Ready to start your project?</h3>
-              <p className="ft-cta-sub">Let&apos;s build something great together — reach out today.</p>
-            </div>
+          <div
+            className={`flex flex-col gap-[1.2rem] transition-all duration-[850ms] ease-out ${
+              show ? "translate-y-0 opacity-100" : "translate-y-7 opacity-0"
+            }`}
+          >
             <a
-              href="#contact"
-              className="ft-btn"
-              onClick={e => handleNavClick(e, "#contact")}
+              href="#"
+              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="inline-block font-body text-[clamp(1.7rem,3.5vw,2.6rem)] font-bold leading-none tracking-[-.04em] text-white no-underline"
             >
-              <span className="ft-btn-inner">
-                Get In Touch
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </span>
+              Aniket<span className="text-white/50">.</span>
             </a>
-          </div>
-
-          <div className={`ft-bottom${show ? " show" : ""}`}>
-            <div className="ft-copy-group">
-              <p className="ft-copy">
-                © {year} <a href="#">Aniket Jamunde</a>. All rights reserved.
-                &nbsp;·&nbsp; Built with Next.js &amp; Flutter.
-              </p>
-              <div className="ft-legal">
-                {LEGAL_LINKS.map(link => (
-                  <Link key={link.label} href={link.href} className="ft-legal-link">
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+            <p className="max-w-[340px] font-body text-[clamp(.84rem,1.1vw,.96rem)] font-normal leading-[1.75] text-white/40">
+              Web Developer &amp; Flutter Developer crafting fast, beautiful, and user-friendly
+              digital products that help businesses grow.
+            </p>
+            <div className="mt-[.4rem] flex flex-wrap gap-[.7rem]">
+              {SOCIALS.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  title={s.label}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[.08] bg-white/[.05] text-white/45 no-underline transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.08] hover:border-white/30 hover:bg-white/[.1] hover:text-white hover:shadow-[0_8px_24px_rgba(255,255,255,.12)]"
+                >
+                  {s.icon}
+                </a>
+              ))}
             </div>
-            <button
-              className="ft-back-top"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              aria-label="Back to top"
-            >
-              Back to top
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 19V5M5 12l7-7 7 7"/>
-              </svg>
-            </button>
           </div>
 
+          <div
+            className={`transition-all delay-100 duration-[850ms] ease-out ${
+              show ? "translate-y-0 opacity-100" : "translate-y-7 opacity-0"
+            }`}
+          >
+            <p className="mb-[1.2rem] font-body text-[.62rem] font-medium uppercase tracking-[.2em] text-white/25">
+              Navigation
+            </p>
+            <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-[.7rem] p-0 lg:grid-cols-3">
+              {NAV_LINKS.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    className="group inline-flex items-center gap-[.55rem] font-body text-[clamp(.84rem,1.05vw,.92rem)] font-normal text-white/40 no-underline transition-all duration-300 ease-out hover:translate-x-1 hover:text-white"
+                  >
+                    <span className="opacity-55 transition-all duration-300 ease-out group-hover:scale-110 group-hover:opacity-100">
+                      {link.icon}
+                    </span>
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </footer>
-    </>
+
+        {/* ── CTA strip — bordered-glass card, same language as Contact's form card ── */}
+        <div
+          className={`relative mb-[clamp(2rem,4vw,3rem)] flex flex-wrap items-center justify-between gap-8 overflow-hidden rounded-[20px] border border-white/[.09] bg-white/[.03] px-[clamp(1.5rem,3vw,2.2rem)] py-[clamp(1.6rem,3vw,2.2rem)] backdrop-blur-xl transition-all delay-200 duration-[850ms] ease-out ${
+            show ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
+          />
+          <div>
+            <h3 className="m-0 mb-[.3rem] font-body text-[clamp(1.1rem,2.2vw,1.6rem)] font-semibold tracking-[-.02em] text-white">
+              Ready to start your project?
+            </h3>
+            <p className="m-0 font-body text-[clamp(.8rem,1.05vw,.9rem)] font-normal text-white/40">
+              Let&apos;s build something great together — reach out today.
+            </p>
+          </div>
+          <a href="#contact" onClick={(e) => handleNavClick(e, "#contact")} className={BTN_PRIMARY}>
+            <span className="relative z-[1] flex items-center gap-2">
+              Get In Touch
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </span>
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
+          </a>
+        </div>
+
+        {/* ── Bottom bar ── */}
+        <div
+          className={`flex flex-wrap items-center justify-between gap-4 transition-all delay-[300ms] duration-700 ease-out ${
+            show ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+          }`}
+        >
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-[.3rem]">
+            <p className="font-body text-[clamp(.72rem,.9vw,.8rem)] font-normal leading-[1.5] text-white/20">
+              © {year}{" "}
+              <a href="#" className="text-white/40 no-underline transition-colors duration-300 hover:text-white/80">
+                Aniket Jamunde
+              </a>
+              . All rights reserved. · Built with Next.js &amp; Flutter.
+            </p>
+            <div className="flex items-center gap-[.9rem]">
+              {LEGAL_LINKS.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="font-body text-[clamp(.72rem,.9vw,.8rem)] font-normal text-white/30 no-underline transition-colors duration-300 hover:text-white/80"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            aria-label="Back to top"
+            className="inline-flex items-center gap-[.45rem] font-body text-[.72rem] font-medium uppercase tracking-[.06em] text-white/30 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:text-white/75"
+          >
+            Back to top
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 19V5M5 12l7-7 7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </footer>
   );
 }

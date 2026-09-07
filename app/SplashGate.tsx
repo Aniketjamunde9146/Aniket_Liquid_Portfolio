@@ -6,10 +6,18 @@ import Navbar from "./components/Navbar";
 
 export default function SplashGate({ children }: { children: React.ReactNode }) {
   const [heroReady, setHeroReady] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   return (
     <>
-      <Splash onDone={() => setHeroReady(true)} />
+      {showSplash && (
+        <Splash
+          onDone={() => {
+            setHeroReady(true);
+            setShowSplash(false);
+          }}
+        />
+      )}
       {heroReady && <Navbar />}
       {children}
     </>

@@ -13,8 +13,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
   ::selection {
-    background: rgba(40, 110, 250, 0.35);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.22);
+    color: #000;
   }
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -48,9 +48,9 @@
     padding: 1.5px;
     background: linear-gradient(135deg,
       rgba(255,255,255,0.70) 0%,
-      rgba(40,110,250,0.80) 25%,
-      rgba(10,30,80,0.18) 50%,
-      rgba(45,120,255,0.90) 75%,
+      rgba(255,255,255,0.35) 25%,
+      rgba(255,255,255,0.06) 50%,
+      rgba(255,255,255,0.40) 75%,
       rgba(255,255,255,0.60) 100%
     );
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -62,9 +62,9 @@
   .chrome-border:hover::before {
     background: linear-gradient(225deg,
       rgba(255,255,255,0.95) 0%,
-      rgba(65,145,255,1.00) 30%,
-      rgba(15,45,120,0.38) 50%,
-      rgba(90,170,255,1.00) 80%,
+      rgba(255,255,255,0.55) 30%,
+      rgba(255,255,255,0.12) 50%,
+      rgba(255,255,255,0.65) 80%,
       rgba(255,255,255,0.90) 100%
     );
   }
@@ -73,7 +73,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(circle at 50% 120%, rgba(45,130,255,0.32) 0%, transparent 68%);
+    background: radial-gradient(circle at 50% 120%, rgba(255,255,255,0.14) 0%, transparent 68%);
     opacity: 0.42;
     pointer-events: none;
     transition: opacity 0.4s ease;

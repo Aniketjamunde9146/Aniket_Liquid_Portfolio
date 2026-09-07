@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, Check, ArrowUpRight, type LucideIcon } from "lucide-react";
-import { gsap } from "gsap";
 
 export interface PricingTier {
   label: string;
@@ -29,184 +28,68 @@ interface Props {
   onClose: () => void;
 }
 
-type Phase = "closed" | "open";
+/* ─────────────────────────────────────────────────────────────
+   Restyled to match the rest of the site's plain bordered-glass
+   language (Hero/About/Testimonials/TechStack/Services).
 
-const EASE_OUT = "power3.out";
-const EASE_IN = "power2.in";
+   Removed vs. the previous version, and why:
+   - GSAP open/close timeline, lite/low-power device detection,
+     staggered content reveal — replaced with a single CSS
+     transition on mount/unmount, matching how every other
+     interactive element on the site is animated (hover lift +
+     transition-all), not a bespoke per-component motion system.
+   - Gradient-border mask-exclude rim + top radial glow ellipse —
+     replaced with the plain border-white/[.1] bg-white/[.03]
+     card treatment used everywhere else.
+   - Cursor shine sweep on the CTA — kept, but swapped for the
+     exact same translate-x sweep already used on the Hero's
+     primary button, instead of a bespoke keyframe.
+   - Tier left-accent bar — kept; it's real info (ties each price
+     row to this service's color), same rationale as tag/pill
+     accent colors elsewhere.
 
-/**
- * ServiceDetailsModal
- * --------------------------------------------------------------------
- * Perf notes (why it's built this way):
- *  - No `filter: blur()` anywhere in the open/close transition. Blur is
- *    one of the most expensive CSS properties to animate — the browser
- *    has to recompute the blur kernel on every frame instead of just
- *    compositing a layer. The old version animated blur on the panel
- *    every open/close; that's gone. The overlay's backdrop-filter is
- *    now a static value (applied once, not transitioned), which is
- *    cheap — only opacity/transform are tweened, both of which run on
- *    the compositor thread.
- *  - GSAP timeline instead of CSS transition + phase state juggling —
- *    one place to reason about timing, easing, and cleanup, and it
- *    gives us reliable onComplete callbacks for unmounting instead of
- *    a manual setTimeout guess.
- *  - `will-change` is applied only while the timeline runs and removed
- *    immediately after, so the layer isn't kept promoted at rest.
- *  - Content (deliverables / pricing / CTA) staggers in slightly on
- *    open for a more considered, "designed" feel — skipped entirely
- *    under prefers-reduced-motion or the lite/low-power path.
- * --------------------------------------------------------------------
- * A11y / GEO-AEO notes:
- *  - Focus moves into the dialog on open and returns to the trigger on
- *    close; Escape and overlay-click both close it.
- *  - Semantic + microdata attributes (itemScope/itemType/itemProp) are
- *    included so the service, its price tiers, and its description are
- *    machine-parseable by crawlers and answer/generative engines that
- *    read structured markup, not just visual text.
- *  - IMPORTANT: this content only exists in the DOM once a user opens
- *    the modal client-side, so search/AI crawlers that don't execute
- *    interactions won't see it here. For real SEO/AEO/GEO value, the
- *    same copy (title, description, deliverables, pricing) should also
- *    be rendered statically on the page (e.g. in the underlying
- *    service card, or as JSON-LD `Service`/`Offer` schema emitted
- *    server-side from the same `ServiceDetail` data). This component
- *    is the interactive layer on top of that, not a replacement for it.
- */
+   Kept, because it's real functionality, not decoration:
+   - Focus trap, Escape-to-close, overlay-click-to-close, body
+     scroll lock, focus restore to trigger on close.
+   - JSON-LD-adjacent microdata (itemScope/itemType/itemProp).
+───────────────────────────────────────────────────────────── */
+
+const BTN_PRIMARY =
+  "group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-8 py-3 " +
+  "font-body text-[.9rem] font-medium text-black no-underline cursor-pointer bg-white " +
+  "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(255,255,255,.25)]";
+
 export default function ServiceDetailsModal({ service, onClose }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const lastFocused = useRef<HTMLElement | null>(null);
 
-  const [lite, setLite] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
   const [rendered, setRendered] = useState<ServiceDetail | null>(service);
-  const phase = useRef<Phase>(service ? "open" : "closed");
+  const [entered, setEntered] = useState(false);
 
-  const tl = useRef<gsap.core.Timeline | null>(null);
-
-  // Same low-power detection used in Services.tsx — keep both consistent.
-  useLayoutEffect(() => {
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    const narrow = window.matchMedia("(max-width: 640px)").matches;
-    const reduceMotionMQ = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
-    const conn = (navigator as any).connection;
-    const slowNet =
-      !!conn &&
-      (conn.saveData || ["slow-2g", "2g", "3g"].includes(conn.effectiveType));
-    const weakCpu = (navigator.hardwareConcurrency ?? 8) <= 4;
-    const lowMem = (navigator as any).deviceMemory
-      ? (navigator as any).deviceMemory <= 4
-      : false;
-
-    setReducedMotion(reduceMotionMQ.matches);
-    setLite(reduceMotionMQ.matches || (coarse && narrow) || slowNet || weakCpu || lowMem);
-
-    const onChange = () => setReducedMotion(reduceMotionMQ.matches);
-    reduceMotionMQ.addEventListener?.("change", onChange);
-    return () => reduceMotionMQ.removeEventListener?.("change", onChange);
-  }, []);
-
-  // Drives mount/open/close with a GSAP timeline instead of a CSS-phase
-  // + setTimeout combo, so the exit animation always gets to finish
-  // before we unmount.
-  useLayoutEffect(() => {
+  // Mount + open
+  useEffect(() => {
     if (service) {
       lastFocused.current = document.activeElement as HTMLElement;
       setRendered(service);
-      phase.current = "open";
-      return; // animation kicked off in the effect below, once rendered
-    }
-
-    if (rendered) {
-      phase.current = "closed";
-      const overlay = overlayRef.current;
-      const panel = panelRef.current;
-      if (!overlay || !panel) {
+      // next frame so the enter transition actually runs
+      requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+    } else if (rendered) {
+      setEntered(false);
+      const t = setTimeout(() => {
         setRendered(null);
-        return;
-      }
-
-      tl.current?.kill();
-      panel.classList.add("sdm-animating");
-
-      const closeTl = gsap.timeline({
-        defaults: { ease: EASE_IN },
-        onComplete: () => {
-          panel.classList.remove("sdm-animating");
-          setRendered(null);
-          lastFocused.current?.focus?.();
-        },
-      });
-
-      if (reducedMotion) {
-        closeTl.to(overlay, { opacity: 0, duration: 0.12 });
-      } else if (lite) {
-        closeTl
-          .to(panel, { opacity: 0, scale: 0.98, duration: 0.16 }, 0)
-          .to(overlay, { opacity: 0, duration: 0.16 }, 0);
-      } else {
-        closeTl
-          .to(panel, { opacity: 0, y: 10, scale: 0.96, duration: 0.26 }, 0)
-          .to(overlay, { opacity: 0, duration: 0.28 }, 0);
-      }
-      tl.current = closeTl;
+        lastFocused.current?.focus?.();
+      }, 250);
+      return () => clearTimeout(t);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [service]);
+  }, [service]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Runs the open animation once the panel is actually in the DOM.
-  useLayoutEffect(() => {
-    if (!rendered || phase.current !== "open") return;
-    const overlay = overlayRef.current;
-    const panel = panelRef.current;
-    if (!overlay || !panel) return;
+  useEffect(() => {
+    if (rendered && entered) closeBtnRef.current?.focus();
+  }, [rendered, entered]);
 
-    tl.current?.kill();
-    panel.classList.add("sdm-animating");
-
-    const openTl = gsap.timeline({
-      defaults: { ease: EASE_OUT },
-      onComplete: () => panel.classList.remove("sdm-animating"),
-    });
-
-    if (reducedMotion) {
-      gsap.set([overlay, panel], { clearProps: "all" });
-      openTl.to(overlay, { opacity: 1, duration: 0.12 });
-    } else if (lite) {
-      gsap.set(panel, { scale: 0.98, opacity: 0 });
-      gsap.set(overlay, { opacity: 0 });
-      openTl
-        .to(overlay, { opacity: 1, duration: 0.18 }, 0)
-        .to(panel, { opacity: 1, scale: 1, duration: 0.2 }, 0);
-    } else {
-      gsap.set(panel, { y: 14, scale: 0.96, opacity: 0 });
-      gsap.set(overlay, { opacity: 0 });
-      openTl
-        .to(overlay, { opacity: 1, duration: 0.3 }, 0)
-        .to(panel, { y: 0, scale: 1, opacity: 1, duration: 0.38 }, 0);
-
-      const staggerTargets = contentRef.current?.querySelectorAll(
-        "[data-sdm-reveal]"
-      );
-      if (staggerTargets?.length) {
-        gsap.set(staggerTargets, { y: 8, opacity: 0 });
-        openTl.to(
-          staggerTargets,
-          { y: 0, opacity: 1, duration: 0.32, stagger: 0.05 },
-          0.1
-        );
-      }
-    }
-
-    tl.current = openTl;
-    closeBtnRef.current?.focus();
-  }, [rendered, lite, reducedMotion]);
-
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!rendered) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -215,12 +98,11 @@ export default function ServiceDetailsModal({ service, onClose }: Props) {
     };
   }, [rendered]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!rendered) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
-        // Minimal focus trap.
         const focusables = panelRef.current?.querySelectorAll<HTMLElement>(
           'button, a[href], [tabindex]:not([tabindex="-1"])'
         );
@@ -239,12 +121,6 @@ export default function ServiceDetailsModal({ service, onClose }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [rendered, onClose]);
-
-  useLayoutEffect(() => {
-    return () => {
-      tl.current?.kill();
-    };
-  }, []);
 
   if (!rendered) return null;
 
@@ -265,187 +141,27 @@ export default function ServiceDetailsModal({ service, onClose }: Props) {
         window.history.replaceState({}, "", url.toString());
       }
       el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, lite || reducedMotion ? 20 : 140);
+    }, 150);
   };
 
   return (
     <div
       ref={overlayRef}
-      className={`sdm-overlay${lite ? " sdm-lite" : ""}`}
       onClick={handleOverlayClick}
       role="presentation"
+      className={`fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/80 p-[clamp(1rem,4vw,2.5rem)] backdrop-blur-md transition-opacity duration-300 ${
+        entered ? "opacity-100" : "opacity-0"
+      }`}
     >
       <style>{`
-        .sdm-overlay {
-          position: fixed; inset: 0; z-index: 200;
-          background: rgba(6,8,13,.78);
-          backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center;
-          padding: clamp(1rem, 4vw, 2.5rem);
-          overflow-y: auto;
-        }
-        .sdm-overlay.sdm-lite {
-          backdrop-filter: none; -webkit-backdrop-filter: none;
-          background: rgba(5,7,11,.9);
-        }
-
-        .sdm-panel {
-          position: relative;
-          width: 100%; max-width: 640px;
-          max-height: min(88vh, 900px);
-          overflow-y: auto;
-          overscroll-behavior: contain;
-          background: linear-gradient(180deg, #0a0d14 0%, #06090f 100%);
-          border: 1px solid rgba(255,255,255,.08);
-          border-radius: 22px;
-          box-shadow:
-            0 1px 0 rgba(255,255,255,.05) inset,
-            0 30px 90px rgba(0,0,0,.55);
-          font-family: 'DM Sans', sans-serif;
-        }
-        /* will-change only while GSAP is actively animating this element */
-        .sdm-panel.sdm-animating { will-change: opacity, transform; }
-
-        .sdm-glow {
-          position: absolute; top: -18%; left: 50%; transform: translateX(-50%);
-          width: 70%; height: 240px; pointer-events: none; z-index: 0;
-          background: radial-gradient(ellipse at center, var(--sdm-glow, rgba(80,140,255,.25)) 0%, transparent 72%);
-          opacity: .75;
-        }
-        .sdm-lite .sdm-glow { display: none; }
-
-        .sdm-close {
-          position: absolute; top: 16px; right: 16px; z-index: 3;
-          width: 36px; height: 36px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,.06);
-          border: 1px solid rgba(255,255,255,.1);
-          color: rgba(255,255,255,.7);
-          cursor: pointer;
-          transition: background .18s ease, color .18s ease, transform .18s ease;
-        }
-        .sdm-close:hover { background: rgba(255,255,255,.14); color: #fff; }
-        .sdm-close:active { transform: scale(.92); }
-        .sdm-close:focus-visible {
-          outline: 2px solid var(--sdm-color, #6ea8ff);
-          outline-offset: 2px;
-        }
-
-        .sdm-header {
-          position: relative; z-index: 2;
-          padding: clamp(1.8rem,4vw,2.6rem) clamp(1.8rem,4vw,2.6rem) 1.4rem;
-        }
-        .sdm-icon {
-          width: 54px; height: 54px; border-radius: 15px;
-          display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,.06);
-          border: 1px solid rgba(255,255,255,.1);
-          color: var(--sdm-color, #fff);
-          margin-bottom: 1.1rem;
-        }
-        .sdm-title {
-          font-size: clamp(1.4rem, 3vw, 1.85rem); font-weight: 700;
-          color: #fff; letter-spacing: -.02em; margin: 0 0 .55rem;
-        }
-        .sdm-desc {
-          font-size: .92rem; font-weight: 400; line-height: 1.7;
-          color: rgba(255,255,255,.52); margin: 0;
-          max-width: 52ch;
-        }
-
-        .sdm-body {
-          position: relative; z-index: 2;
-          padding: 0 clamp(1.8rem,4vw,2.6rem) clamp(1.8rem,4vw,2.6rem);
-          display: flex; flex-direction: column; gap: 1.7rem;
-        }
-
-        .sdm-section-label {
-          font-size: .67rem; font-weight: 600;
-          color: rgba(255,255,255,.36); letter-spacing: .13em; text-transform: uppercase;
-          margin-bottom: .85rem;
-        }
-
-        .sdm-points {
-          display: grid; grid-template-columns: 1fr 1fr; gap: .65rem .5rem;
-        }
-        .sdm-point {
-          display: flex; align-items: flex-start; gap: .5rem;
-          font-size: .84rem; color: rgba(255,255,255,.7); line-height: 1.5;
-        }
-        .sdm-point svg { flex-shrink: 0; margin-top: 2px; color: var(--sdm-color, #fff); }
-
-        .sdm-tiers { display: flex; flex-direction: column; gap: .55rem; }
-        .sdm-tier {
-          display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-          padding: .9rem 1.1rem;
-          border-radius: 13px;
-          background: rgba(255,255,255,.03);
-          border: 1px solid rgba(255,255,255,.07);
-          transition: border-color .2s ease, background .2s ease;
-        }
-        .sdm-tier:hover {
-          border-color: var(--sdm-color, rgba(255,255,255,.2));
-          background: rgba(255,255,255,.05);
-        }
-        .sdm-tier-info { display: flex; flex-direction: column; gap: .18rem; min-width: 0; }
-        .sdm-tier-label { font-size: .87rem; font-weight: 600; color: #fff; }
-        .sdm-tier-note { font-size: .73rem; color: rgba(255,255,255,.42); }
-        .sdm-tier-price {
-          font-size: .94rem; font-weight: 700; color: var(--sdm-color, #fff);
-          white-space: nowrap; flex-shrink: 0;
-        }
-
-        .sdm-timeline {
-          display: flex; align-items: center; gap: .6rem;
-          font-size: .82rem; color: rgba(255,255,255,.52);
-          padding: .8rem 1.1rem;
-          border-radius: 13px;
-          background: rgba(255,255,255,.03);
-          border: 1px solid rgba(255,255,255,.07);
-        }
-        .sdm-timeline strong { color: #fff; font-weight: 600; }
-
-        .sdm-cta {
-          display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-          width: 100%;
-          font-size: .9rem; font-weight: 600; color: #fff;
-          padding: .92rem 1.4rem;
-          border-radius: 12px;
-          background: linear-gradient(135deg, var(--sdm-color, #4682ff), color-mix(in srgb, var(--sdm-color, #4682ff) 75%, #000));
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 10px 28px var(--sdm-glow, rgba(80,140,255,.28));
-          transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
-        }
-        .sdm-cta:hover { transform: translateY(-2px); filter: brightness(1.07); }
-        .sdm-cta:active { transform: translateY(0) scale(.98); }
-        .sdm-cta:focus-visible {
-          outline: 2px solid #fff;
-          outline-offset: 2px;
-        }
-
-        .sdm-fineprint {
-          text-align: center;
-          font-size: .72rem; color: rgba(255,255,255,.3);
-          margin: 0;
-        }
-
-        @media (max-width: 520px) {
-          .sdm-points { grid-template-columns: 1fr; }
-          .sdm-tier { flex-direction: column; align-items: flex-start; gap: .3rem; }
-          .sdm-tier-price { align-self: flex-end; }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
         }
       `}</style>
 
       <div
         ref={panelRef}
-        className="sdm-panel"
-        style={
-          {
-            "--sdm-color": rendered.colorHex,
-            "--sdm-glow": rendered.colorGlow,
-          } as React.CSSProperties
-        }
+        style={{ "--clr": rendered.colorHex } as React.CSSProperties}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -453,62 +169,87 @@ export default function ServiceDetailsModal({ service, onClose }: Props) {
         aria-describedby="sdm-desc"
         itemScope
         itemType="https://schema.org/Service"
+        className={`relative max-h-[min(88vh,900px)] w-full max-w-[640px] overflow-y-auto overscroll-contain rounded-[22px] border border-white/[.1] bg-white/[.03] backdrop-blur-xl transition-all duration-300 ease-out ${
+          entered ? "translate-y-0 scale-100 opacity-100" : "translate-y-3 scale-[.97] opacity-0"
+        }`}
       >
-        <div className="sdm-glow" aria-hidden="true" />
-
         <button
           ref={closeBtnRef}
           type="button"
-          className="sdm-close"
           onClick={onClose}
           aria-label="Close service details"
+          className="absolute right-4 top-4 z-[3] flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[.06] text-white/70 transition-all duration-300 ease-out hover:border-white/30 hover:bg-white/[.12] hover:text-white"
         >
           <X size={17} aria-hidden="true" />
         </button>
 
-        <div className="sdm-header">
-          <div className="sdm-icon" aria-hidden="true">
+        <div className="px-[clamp(1.8rem,4vw,2.6rem)] pb-6 pt-[clamp(1.8rem,4vw,2.6rem)]">
+          <div
+            aria-hidden="true"
+            className="mb-[1.1rem] flex h-[54px] w-[54px] items-center justify-center rounded-2xl border border-white/[.1] bg-white/[.06] text-[var(--clr)]"
+          >
             <Icon size={26} />
           </div>
-          <h2 id="sdm-title" className="sdm-title" itemProp="name">
+          <h2
+            id="sdm-title"
+            itemProp="name"
+            className="m-0 mb-[.55rem] font-body text-[clamp(1.4rem,3vw,1.85rem)] font-bold tracking-[-.02em] text-white"
+          >
             {rendered.title}
           </h2>
-          <p id="sdm-desc" className="sdm-desc" itemProp="description">
+          <p
+            id="sdm-desc"
+            itemProp="description"
+            className="m-0 max-w-[52ch] font-body text-[.92rem] font-normal leading-[1.7] text-white/55"
+          >
             {rendered.longDescription}
           </p>
         </div>
 
-        <div className="sdm-body" ref={contentRef}>
-          <div data-sdm-reveal>
-            <div className="sdm-section-label">What&apos;s included</div>
-            <ul className="sdm-points" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        <div className="flex flex-col gap-[1.7rem] px-[clamp(1.8rem,4vw,2.6rem)] pb-[clamp(1.8rem,4vw,2.6rem)]">
+          <div>
+            <div className="mb-[.85rem] font-body text-[.67rem] font-semibold uppercase tracking-[.13em] text-white/35">
+              What&apos;s included
+            </div>
+            <ul className="grid grid-cols-2 gap-x-2 gap-y-[.65rem] p-0 max-[520px]:grid-cols-1" style={{ listStyle: "none", margin: 0 }}>
               {rendered.deliverables.map((d) => (
-                <li key={d} className="sdm-point">
-                  <Check size={14} aria-hidden="true" />
+                <li key={d} className="flex items-start gap-2 font-body text-[.84rem] leading-[1.5] text-white/70">
+                  <Check size={14} aria-hidden="true" className="mt-[2px] flex-shrink-0 text-[var(--clr)]" />
                   <span>{d}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div data-sdm-reveal>
-            <div className="sdm-section-label">Pricing</div>
-            <div className="sdm-tiers">
+          <div>
+            <div className="mb-[.85rem] font-body text-[.67rem] font-semibold uppercase tracking-[.13em] text-white/35">
+              Pricing
+            </div>
+            <div className="flex flex-col gap-[.55rem]">
               {rendered.pricingTiers.map((tier) => (
                 <div
                   key={tier.label}
-                  className="sdm-tier"
                   itemProp="offers"
                   itemScope
                   itemType="https://schema.org/Offer"
+                  className="relative flex items-center justify-between gap-4 overflow-hidden rounded-[13px] border border-white/[.08] bg-white/[.03] py-[.9rem] pl-[1.3rem] pr-[1.1rem] transition-colors duration-300 ease-out hover:border-white/20 max-[520px]:flex-col max-[520px]:items-start max-[520px]:gap-[.3rem]"
                 >
-                  <div className="sdm-tier-info">
-                    <span className="sdm-tier-label" itemProp="name">
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-y-0 left-0 w-[3px] bg-[var(--clr)] opacity-60"
+                  />
+                  <div className="flex min-w-0 flex-col gap-[.18rem]">
+                    <span itemProp="name" className="font-body text-[.87rem] font-semibold text-white">
                       {tier.label}
                     </span>
-                    {tier.note && <span className="sdm-tier-note">{tier.note}</span>}
+                    {tier.note && (
+                      <span className="font-body text-[.73rem] text-white/40">{tier.note}</span>
+                    )}
                   </div>
-                  <span className="sdm-tier-price" itemProp="price">
+                  <span
+                    itemProp="price"
+                    className="flex-shrink-0 whitespace-nowrap font-body text-[.94rem] font-bold text-white max-[520px]:self-end"
+                  >
                     {tier.price}
                   </span>
                 </div>
@@ -516,22 +257,19 @@ export default function ServiceDetailsModal({ service, onClose }: Props) {
             </div>
           </div>
 
-          <div className="sdm-timeline" data-sdm-reveal>
+          <div className="flex items-center gap-[.6rem] rounded-[13px] border border-white/[.08] bg-white/[.03] px-[1.1rem] py-[.8rem] font-body text-[.82rem] text-white/55">
             <span>
-              Typical timeline: <strong>{rendered.timeline}</strong>
+              Typical timeline: <strong className="font-semibold text-white">{rendered.timeline}</strong>
             </span>
           </div>
 
-          <button
-            type="button"
-            className="sdm-cta"
-            onClick={scrollToContact}
-            data-sdm-reveal
-          >
-            Get a Custom Quote <ArrowUpRight size={15} aria-hidden="true" />
+          <button type="button" onClick={scrollToContact} className={BTN_PRIMARY}>
+            <span className="relative z-[1]">Get a Custom Quote</span>
+            <ArrowUpRight size={15} aria-hidden="true" className="relative z-[1]" />
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
           </button>
 
-          <p className="sdm-fineprint">
+          <p className="m-0 text-center font-body text-[.72rem] text-white/30">
             Final pricing depends on scope — this gives you a ballpark.
           </p>
         </div>
