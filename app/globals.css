@@ -2,10 +2,15 @@
 
 @import 'tailwindcss';
 @config "../tailwind.config.ts";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   body {
     @apply font-body bg-bg text-text-primary antialiased overflow-x-hidden;
@@ -94,4 +99,77 @@
       scroll-behavior: auto !important;
     }
   }
+}
+
+html:not(.dark) .bp-root,
+html:not(.dark) .bl-root,
+html:not(.dark) .tc-root {
+  background: #fafafa !important;
+}
+
+html:not(.dark) .bp-root,
+html:not(.dark) .bl-root,
+html:not(.dark) .tc-root {
+  color: #111318;
+}
+
+html:not(.dark) .theme-surface {
+  background-color: #fafafa !important;
+  color: #111318;
+}
+
+html:not(.dark) .theme-surface [class*="text-white"] {
+  color: #111318 !important;
+}
+
+html:not(.dark) .theme-surface [class*="border-white"] {
+  border-color: rgba(17, 19, 24, .14) !important;
+}
+
+html:not(.dark) .theme-surface [class*="bg-white"] {
+  background-color: rgba(17, 19, 24, .05) !important;
+}
+
+html:not(.dark) .bp-title,
+html:not(.dark) .bp-h2,
+html:not(.dark) .bl-title,
+html:not(.dark) .tc-title,
+html:not(.dark) .tc-card-title {
+  color: #111318;
+}
+
+html:not(.dark) .bp-p,
+html:not(.dark) .bl-desc,
+html:not(.dark) .tc-desc,
+html:not(.dark) .tc-card-body {
+  color: rgba(17, 19, 24, .68);
+}
+
+html:not(.dark) .bp-meta,
+html:not(.dark) .bp-related-title,
+html:not(.dark) .bl-eyebrow,
+html:not(.dark) .tc-eyebrow,
+html:not(.dark) .tc-meta,
+html:not(.dark) .tc-card-num {
+  color: rgba(17, 19, 24, .5);
+}
+
+html:not(.dark) .bp-meta,
+html:not(.dark) .bp-related,
+html:not(.dark) .tc-meta,
+html:not(.dark) .tc-card,
+html:not(.dark) .tc-footer-link {
+  border-color: rgba(17, 19, 24, .14);
+}
+
+html:not(.dark) .bp-related-link,
+html:not(.dark) .bp-tag,
+html:not(.dark) .tc-card,
+html:not(.dark) .tc-footer-link {
+  background: rgba(17, 19, 24, .04);
+}
+
+html:not(.dark) .bp-related-link span:first-child,
+html:not(.dark) .tc-footer-text strong {
+  color: #111318;
 }

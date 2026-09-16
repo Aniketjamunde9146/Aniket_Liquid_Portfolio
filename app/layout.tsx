@@ -3,6 +3,7 @@ import "./globals.css";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import ChatWidget from "./components/ChatWidget";
+import { ThemeProvider } from "./theme/ThemeComponents";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aniketwebdev.in"),
@@ -121,6 +122,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);`,
+          }}
+        />
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -130,9 +136,9 @@ export default function RootLayout({
         />
 
         {/* Favicons & PWA */}
-        <link rel="icon" href="/icon.png" sizes="any" />
-        <link rel="icon" href="/icon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.jpg" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/icon.jpg" />
         <link rel="manifest" href="/site.webmanifest" />
 
         {/* Sitemap discovery hint (optional — robots.txt already points to it) */}
@@ -140,7 +146,7 @@ export default function RootLayout({
 
         {/* Theme */}
         <meta name="theme-color" content="#fdf6ee" />
-        <meta name="color-scheme" content="light" />
+        <meta name="color-scheme" content="light dark" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {/* Geo targeting */}
@@ -281,9 +287,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        
-        {children}
-       
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

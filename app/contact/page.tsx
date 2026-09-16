@@ -212,7 +212,7 @@ export default function Contact() {
         id="contact"
         ref={sectionRef}
         aria-labelledby="contact-heading"
-        className="relative isolate overflow-hidden bg-black py-[clamp(5rem,10vh,8rem)] [content-visibility:auto] [contain-intrinsic-size:1100px]"
+        className="theme-surface relative isolate overflow-hidden bg-black py-[clamp(5rem,10vh,8rem)]"
       >
         <div className="absolute inset-x-0 top-0 z-[3] h-px bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.08)_50%,transparent_100%)]" />
 

@@ -1,14 +1,6 @@
-"use client";
-
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import Script from "next/script";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const STATS = [
   { label: "Years Experience", value: 3, suffix: "+" },
@@ -45,96 +37,14 @@ const BTN_OUTLINE =
   "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-black/40 hover:bg-black/[.08] hover:shadow-[0_8px_28px_rgba(0,0,0,.08)] " +
   "dark:border-white/20 dark:bg-white/[.04] dark:text-white dark:hover:border-white/40 dark:hover:bg-white/[.1] dark:hover:shadow-[0_8px_28px_rgba(255,255,255,.1)]";
 
-const HIDDEN_STYLE: React.CSSProperties = {
-  opacity: 0,
-  filter: "blur(14px)",
-  transform: "translateY(28px)",
-};
-
 export default function About() {
-  const [statValues, setStatValues] = useState<number[]>(() => STATS.map(() => 0));
-  const sectionRef = useRef<HTMLElement>(null);
-  const statsAnimated = useRef(false);
-
-  const runStatCountUp = () => {
-    if (statsAnimated.current) return;
-    statsAnimated.current = true;
-
-    const reduceMotion =
-      typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduceMotion) {
-      setStatValues(STATS.map((s) => s.value));
-      return;
-    }
-
-    const duration = 1000;
-    const start = performance.now();
-    let raf = 0;
-
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setStatValues(STATS.map((s) => Math.round(s.value * eased)));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-  };
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const nodes = Array.from(section.querySelectorAll<HTMLElement>("[data-animate]"));
-
-    if (reduceMotion) {
-      nodes.forEach((el) => {
-        el.style.opacity = "1";
-        el.style.filter = "none";
-        el.style.transform = "none";
-      });
-      runStatCountUp();
-      return;
-    }
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        paused: true,
-        defaults: { ease: "power3.out" },
-      });
-
-      tl.to(nodes, {
-        opacity: 1,
-        filter: "blur(0px)",
-        y: 0,
-        duration: 0.8,
-        stagger: 0.08,
-      });
-
-      ScrollTrigger.create({
-        trigger: section,
-        start: "top 75%",
-        end: "bottom 20%",
-        onEnter: () => {
-          tl.play();
-          runStatCountUp();
-        },
-        onLeave: () => tl.reverse(),
-        onEnterBack: () => tl.play(),
-        onLeaveBack: () => tl.reverse(),
-      });
-    }, section);
-
-    return () => ctx.revert();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const jsonLd = useMemo(
     () => ({
       "@context": "https://schema.org",
       "@type": "Person",
+      "@id": "https://aniketwebdev.in/#person",
       name: "Aniket Jamunde",
+      url: "https://aniketwebdev.in",
       jobTitle: "Web Developer & Flutter Developer",
       description:
         "Self-taught Flutter & web developer from Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, building fast, modern websites and cross-platform mobile apps.",
@@ -145,6 +55,12 @@ export default function About() {
         addressCountry: "IN",
       },
       knowsAbout: TAGS,
+      areaServed: [
+        "Chhatrapati Sambhajinagar",
+        "Maharashtra",
+        "India",
+        "Worldwide",
+      ],
     }),
     []
   );
@@ -163,9 +79,8 @@ export default function About() {
 
       <section
         id="about"
-        ref={sectionRef}
         aria-labelledby="about-heading"
-        className="relative isolate overflow-hidden bg-[#FAFAFA] py-[clamp(5rem,10vh,8rem)] [content-visibility:auto] [contain-intrinsic-size:auto_1200px] dark:bg-black"
+        className="relative isolate overflow-hidden bg-[#FAFAFA] py-[clamp(5rem,10vh,8rem)] dark:bg-black"
       >
         <Script
           id="about-jsonld"
@@ -189,23 +104,17 @@ export default function About() {
           {/* ── Header ── */}
           <div className="mb-[clamp(1.6rem,3.5vw,2.6rem)] max-w-[700px] text-center">
             <p
-              data-animate
-              style={HIDDEN_STYLE}
               className="font-body text-[clamp(.6rem,.85vw,.7rem)] font-normal uppercase tracking-[.38em] text-black/40 dark:text-white/30"
             >
               Who I Am
             </p>
             <h2
               id="about-heading"
-              data-animate
-              style={HIDDEN_STYLE}
               className="m-0 mb-[clamp(.8rem,1.6vw,1.1rem)] mt-[.8rem] font-body text-[clamp(2.1rem,5.5vw,4.4rem)] font-semibold leading-[1.08] tracking-[-.03em] text-black dark:text-white"
             >
               Meet Aniket Jamunde
             </h2>
             <p
-              data-animate
-              style={HIDDEN_STYLE}
               className="font-body text-[clamp(.86rem,1.15vw,1rem)] font-normal leading-[1.8] text-black/60 dark:text-white/50"
             >
               I&apos;m a Web Developer &amp; Flutter Developer passionate about turning ideas into fast,
@@ -214,8 +123,6 @@ export default function About() {
               real business impact into every project I ship.
             </p>
             <p
-              data-animate
-              style={HIDDEN_STYLE}
               className="mt-[.9rem] font-body text-[clamp(.82rem,1.05vw,.92rem)] font-normal leading-[1.8] text-black/50 dark:text-white/40"
             >
               Based in Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, I&apos;m self-taught —
@@ -227,8 +134,6 @@ export default function About() {
 
           {/* ── Stat counters ── */}
           <div
-            data-animate
-            style={HIDDEN_STYLE}
             className="mb-[clamp(1.8rem,3.5vw,3rem)] flex flex-wrap justify-center gap-x-6 gap-y-5 sm:gap-x-[clamp(1.8rem,4vw,3.2rem)]"
           >
             {STATS.map((s, i) => (
@@ -241,7 +146,7 @@ export default function About() {
                 )}
                 <div className="flex min-w-[76px] flex-col items-center gap-[.35rem] sm:min-w-[96px]">
                   <span className="font-body text-[clamp(1.7rem,3.2vw,2.5rem)] font-semibold leading-none tracking-[-.02em] text-black [font-variant-numeric:tabular-nums] dark:text-white">
-                    {statValues[i]}
+                    {s.value}
                     {s.suffix}
                   </span>
                   <span className="whitespace-nowrap text-center font-body text-[clamp(.66rem,.9vw,.75rem)] font-normal tracking-[.04em] text-black/50 dark:text-white/40">
@@ -253,7 +158,7 @@ export default function About() {
           </div>
 
           {/* ── Illustration — static, one lightweight float loop ── */}
-          <div data-animate style={HIDDEN_STYLE} className="mb-8 flex justify-center">
+          <div className="mb-8 flex justify-center">
             <Image
               src="/about.jpg"
               alt="3D illustration of a laptop representing Aniket Jamunde's web and app development work"
@@ -267,8 +172,6 @@ export default function About() {
 
           {/* ── Services offered ── */}
           <ul
-            data-animate
-            style={HIDDEN_STYLE}
             className="mb-[clamp(1.8rem,3.5vw,3rem)] flex max-w-[640px] flex-wrap justify-center gap-2.5 p-0"
             aria-label="Services I offer"
           >
@@ -281,8 +184,6 @@ export default function About() {
 
           {/* ── CTA buttons ── */}
           <div
-            data-animate
-            style={HIDDEN_STYLE}
             className="flex w-full max-w-[280px] flex-col items-stretch justify-center gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:gap-4"
           >
             <a href="#contact" className={BTN_PRIMARY}>

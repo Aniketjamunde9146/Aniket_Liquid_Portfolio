@@ -217,7 +217,7 @@ export default function Footer() {
     <footer
       id="footer"
       ref={sectionRef}
-      className="relative isolate overflow-hidden bg-black pt-[clamp(4rem,8vh,7rem)] pb-[clamp(2rem,4vh,3rem)] [content-visibility:auto] [contain-intrinsic-size:900px]"
+      className="theme-surface relative isolate overflow-hidden bg-black pt-[clamp(4rem,8vh,7rem)] pb-[clamp(2rem,4vh,3rem)] [content-visibility:auto] [contain-intrinsic-size:900px]"
     >
       <style>{`
         @media (prefers-reduced-motion: reduce) {

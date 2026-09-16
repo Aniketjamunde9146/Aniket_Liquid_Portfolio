@@ -284,6 +284,7 @@ export default function ProjectsSection({
   headingTag?: "h1" | "h2";
 }) {
   const [inView, setInView] = useState(true);
+  const [detailProject, setDetailProject] = useState<Project | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -394,8 +395,7 @@ export default function ProjectsSection({
               }}
               project={project}
               idx={idx}
-              onViewDetails={setDetailProject => setDetailProject}
-              // ↑ placeholder replaced below
+              onViewDetails={setDetailProject}
             />
           ))}
         </div>
@@ -416,6 +416,12 @@ export default function ProjectsSection({
           </div>
         )}
       </div>
+      {detailProject && (
+        <ProjectDetailsModal
+          project={detailProject}
+          onClose={() => setDetailProject(null)}
+        />
+      )}
     </section>
   );
 }

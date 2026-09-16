@@ -2,7 +2,8 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
+import { SmartBack } from "../theme/ThemeComponents";
 
 const SITE_NAME = "aniketwebdev.in";
 const CONTACT_EMAIL = "aniketjamunde@zohomail.com";
@@ -420,9 +421,7 @@ export default function TermsAndConditionsPage() {
         <div className="tc-scan" aria-hidden="true" />
 
         <div className="tc-inner">
-          <Link href="/" className="tc-back">
-            <ArrowLeft size={15} /> Back to portfolio
-          </Link>
+          <SmartBack />
 
           <Reveal as="div" className="tc-head">
             <p className="tc-eyebrow">Legal</p>

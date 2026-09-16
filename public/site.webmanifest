@@ -1,0 +1,17 @@
+{
+  "name": "Aniket Jamunde Portfolio",
+  "short_name": "Aniket Jamunde",
+  "description": "Portfolio of Aniket Jamunde, Flutter and web developer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#fafafa",
+  "icons": [
+    {
+      "src": "/icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

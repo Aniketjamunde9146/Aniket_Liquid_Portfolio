@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { ArrowLeft } from "lucide-react";
 import {
   buttonBase,
   buttonGlowOverlay,
@@ -110,5 +111,43 @@ export function Badge({ children }: { children: React.ReactNode }) {
       <span className={badgeDot} />
       <span className="relative z-[1]">{children}</span>
     </div>
+  );
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncTheme = () => {
+      const dark = media.matches;
+      document.documentElement.classList.toggle("dark", dark);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      document.documentElement.style.colorScheme = dark ? "dark" : "light";
+    };
+    syncTheme();
+    media.addEventListener("change", syncTheme);
+    return () => media.removeEventListener("change", syncTheme);
+  }, []);
+
+  return <>{children}</>;
+}
+
+export function SmartBack({ fallback = "/" }: { fallback?: string }) {
+  const handleBack = () => {
+    if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) {
+      window.history.back();
+    } else {
+      window.location.assign(fallback);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleBack}
+      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/15 bg-black/[.04] px-4 py-2 font-body text-sm text-black/70 transition-colors hover:border-black/30 hover:bg-black/[.08] hover:text-black dark:border-white/15 dark:bg-white/[.05] dark:text-white/70 dark:hover:border-white/30 dark:hover:bg-white/[.1] dark:hover:text-white"
+    >
+      <ArrowLeft size={15} aria-hidden="true" />
+      Back
+    </button>
   );
 }

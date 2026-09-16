@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, ArrowUpRight } from "lucide-react";
+import { Clock, ArrowUpRight } from "lucide-react";
 import { getPostBySlug, getRelatedPosts, getAllSlugs } from "../blogs";
+import { SmartBack } from "../../theme/ThemeComponents";
 
 const SITE_URL = "https://aniketwebdev.in"; // TODO: replace with your real production domain
 
@@ -151,9 +152,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       <article className="bp-root">
         <div className="bp-grain" aria-hidden="true" />
         <div className="bp-inner">
-        <Link href="/#blog" className="bp-back">
-  <ArrowLeft size={15} /> Back to blog
-</Link>
+        <SmartBack fallback="/#blog" />
 
           <div style={{ "--a1": post.accent[0] } as React.CSSProperties}>
             <span className="bp-cat">{post.category}</span>

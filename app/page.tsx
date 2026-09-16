@@ -20,7 +20,7 @@ export default async function Page() {
   return (
     <SplashGate>
       <Hero />
-      <ProjectsSection projects={projects} limit={6} headingTag="h2" />
+      <ProjectsSection projects={projects} headingTag="h2" />
       <About />
       <TechThicker />
       <Services />

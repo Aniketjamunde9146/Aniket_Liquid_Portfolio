@@ -239,6 +239,29 @@ export default function BlogsGrid({ posts }: { posts: BlogPost[] }) {
           .bg-grid { grid-template-columns: 1fr; }
           .bg-more-btn { width: 100%; justify-content: center; }
         }
+        html:not(.dark) .bg-card {
+          background: linear-gradient(180deg, rgba(17,19,24,.055), rgba(17,19,24,.018));
+          border-color: rgba(17,19,24,.14);
+          box-shadow: 0 8px 24px rgba(17,19,24,.06);
+        }
+        html:not(.dark) .bg-card-title { color: #111318; }
+        html:not(.dark) .bg-card-excerpt { color: rgba(17,19,24,.68); }
+        html:not(.dark) .bg-card-meta { color: rgba(17,19,24,.56); }
+        html:not(.dark) .bg-tag {
+          color: rgba(17,19,24,.68);
+          background: rgba(17,19,24,.05);
+          border-color: rgba(17,19,24,.14);
+        }
+        html:not(.dark) .bg-more-btn {
+          color: #111318;
+          background: rgba(17,19,24,.05);
+          border-color: rgba(17,19,24,.16);
+        }
+        html:not(.dark) .bg-more-count {
+          color: rgba(17,19,24,.58);
+          background: rgba(17,19,24,.06);
+          border-color: rgba(17,19,24,.12);
+        }
         @media (prefers-reduced-motion: reduce) {
           .bg-card, .bg-more-btn { transition: none !important; opacity: 1 !important; transform: none !important; }
         }

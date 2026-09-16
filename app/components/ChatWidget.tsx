@@ -377,7 +377,7 @@ export default function ChatWidget() {
         type="button"
         aria-label={open ? "Close chat" : "Open chat"}
         onClick={() => setOpen((o) => !o)}
-        className={`fixed bottom-[clamp(1rem,3vw,1.75rem)] right-[clamp(1rem,3vw,1.75rem)] z-[60] flex h-[58px] w-[58px] items-center justify-center rounded-full border border-white/15 bg-white/[.06] text-white backdrop-blur-lg transition-all duration-300 ease-out hover:-translate-y-1 hover:border-white/30 hover:bg-white/[.1] hover:shadow-[0_8px_28px_rgba(255,255,255,.15)] ${
+        className={`theme-surface fixed bottom-[clamp(1rem,3vw,1.75rem)] right-[clamp(1rem,3vw,1.75rem)] z-[60] flex h-[58px] w-[58px] items-center justify-center rounded-full border border-white/15 bg-white/[.06] text-white backdrop-blur-lg transition-all duration-300 ease-out hover:-translate-y-1 hover:border-white/30 hover:bg-white/[.1] hover:shadow-[0_8px_28px_rgba(255,255,255,.15)] ${
           open ? "pointer-events-none scale-90 opacity-0" : "opacity-100"
         }`}
       >
@@ -395,7 +395,7 @@ export default function ChatWidget() {
         role="dialog"
         aria-modal="true"
         aria-label="Chat with Aniket's assistant"
-        className={`fixed bottom-[clamp(4.75rem,10vh,6.25rem)] right-[clamp(.75rem,3vw,1.75rem)] z-[60] flex h-[min(600px,74vh)] w-[min(390px,92vw)] flex-col overflow-hidden rounded-[14px] border border-white/[.1] bg-black/90 shadow-[0_24px_60px_rgba(0,0,0,.6)] backdrop-blur-xl transition-all duration-300 ease-out ${
+        className={`theme-surface fixed bottom-[clamp(4.75rem,10vh,6.25rem)] right-[clamp(.75rem,3vw,1.75rem)] z-[60] flex h-[min(600px,74vh)] w-[min(390px,92vw)] flex-col overflow-hidden rounded-[14px] border border-white/[.1] bg-black/90 shadow-[0_24px_60px_rgba(0,0,0,.6)] backdrop-blur-xl transition-all duration-300 ease-out ${
           open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-3 scale-[.97] opacity-0"
         }`}
       >

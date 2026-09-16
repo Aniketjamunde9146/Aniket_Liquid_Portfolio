@@ -98,6 +98,10 @@ export default async function BlogsPage({ headingTag = "h1" }: { headingTag?: "h
         .bl-desc {
           font-size: clamp(.86rem,1.15vw,1rem); color: rgba(255,255,255,.42); line-height: 1.8; margin: 0;
         }
+        html:not(.dark) .bl-root { background: #fafafa; color: #111318; }
+        html:not(.dark) .bl-eyebrow { color: rgba(17,19,24,.5); }
+        html:not(.dark) .bl-title { color: #111318; }
+        html:not(.dark) .bl-desc { color: rgba(17,19,24,.68); }
       `}</style>
 
       <section className="bl-root">
