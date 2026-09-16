@@ -23,22 +23,10 @@ interface ProjectDetailsModalProps {
   onClose: () => void;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   RESTYLED to match the site's shared theme (Hero/Services/
-   Testimonials/ProjectsSection): black background, white/[.NN]
-   opacity scale, bordered-glass panel and buttons — replacing the
-   previous navy (#07101e) panel and blue liquid-gradient link
-   buttons. Per-project accentColor is kept only where it's real
-   info (category label, star rating, "View live" button), the
-   same rationale used for accent colors elsewhere on the site.
-
-   Behavior is unchanged: scroll-lock (position:fixed on body,
-   restores on close), Escape-to-close, focus trap, portal to
-   document.body (needed because ProjectsSection has
-   content-visibility:auto, which makes its box a containing
-   block for position:fixed descendants — portalling sidesteps
-   that), and a mobile bottom-sheet / desktop centered-card layout.
-───────────────────────────────────────────────────────────── */
+/* Behavior unchanged from the original: scroll-lock, Escape-to-close, focus
+   trap, portal to document.body. Only the color tokens gained light-mode
+   counterparts alongside the existing dark: overrides, following the same
+   auto (prefers-color-scheme) approach as Hero/ProjectsSection. */
 
 const LINK_BTN_BASE =
   "inline-flex min-h-[44px] items-center justify-center gap-[7px] whitespace-nowrap rounded-xl px-[1.1rem] py-[.65rem] " +
@@ -125,14 +113,14 @@ export default function ProjectDetailsModal({ project, onClose }: ProjectDetails
 
       <div
         ref={panelRef}
-        className="pdm-panel relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[20px] border border-white/[.1] bg-black pb-[max(1.5rem,env(safe-area-inset-bottom))] font-body backdrop-blur-md sm:max-h-[min(84vh,780px)] sm:w-[min(640px,100%)] sm:rounded-[20px] sm:pb-[clamp(1.5rem,3vw,2.25rem)]"
+        className="pdm-panel relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[20px] border border-black/[.1] bg-[#FAFAFA] pb-[max(1.5rem,env(safe-area-inset-bottom))] font-body backdrop-blur-md sm:max-h-[min(84vh,780px)] sm:w-[min(640px,100%)] sm:rounded-[20px] sm:pb-[clamp(1.5rem,3vw,2.25rem)] dark:border-white/[.1] dark:bg-black"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mb-1 mt-2 h-1 w-9 rounded-full bg-white/20 sm:hidden" aria-hidden="true" />
+        <div className="mx-auto mb-1 mt-2 h-1 w-9 rounded-full bg-black/20 dark:bg-white/20 sm:hidden" aria-hidden="true" />
 
         <button
           ref={closeButtonRef}
-          className="absolute right-3 top-3 z-[2] flex h-10 w-10 items-center justify-center rounded-full border border-white/[.14] bg-black/50 text-white transition-colors hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:right-[14px] sm:top-[14px]"
+          className="absolute right-3 top-3 z-[2] flex h-10 w-10 items-center justify-center rounded-full border border-black/[.14] bg-white/70 text-black transition-colors hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:right-[14px] sm:top-[14px] dark:border-white/[.14] dark:bg-black/50 dark:text-white dark:hover:bg-black/70 dark:focus-visible:outline-white"
           onClick={onClose}
           aria-label="Close details"
         >
@@ -149,10 +137,10 @@ export default function ProjectDetailsModal({ project, onClose }: ProjectDetails
           </div>
         ) : (
           <div
-            className="flex aspect-video w-full items-center justify-center bg-white/[.03]"
+            className="flex aspect-video w-full items-center justify-center bg-black/[.03] dark:bg-white/[.03]"
             style={{ background: `linear-gradient(135deg, ${accent}1a, transparent)` }}
           >
-            <span className="px-6 text-center text-[1.1rem] font-medium text-white/30">{project.name}</span>
+            <span className="px-6 text-center text-[1.1rem] font-medium text-black/30 dark:text-white/30">{project.name}</span>
           </div>
         )}
 
@@ -165,49 +153,51 @@ export default function ProjectDetailsModal({ project, onClose }: ProjectDetails
               {project.category}
             </p>
           )}
-          <h2 className="m-0 mb-[.35rem] text-[clamp(1.5rem,3vw,2rem)] font-semibold tracking-[-.02em] text-white">
+          <h2 className="m-0 mb-[.35rem] text-[clamp(1.5rem,3vw,2rem)] font-semibold tracking-[-.02em] text-black dark:text-white">
             {project.name}
           </h2>
-          {project.tagline && <p className="m-0 mb-[1.4rem] text-[.9rem] text-white/50">{project.tagline}</p>}
+          {project.tagline && (
+            <p className="m-0 mb-[1.4rem] text-[.9rem] text-black/50 dark:text-white/50">{project.tagline}</p>
+          )}
 
           {project.year && (
             <div className="mb-[1.4rem] flex flex-wrap gap-x-[1.4rem] gap-y-2">
-              <span className="text-[.78rem] text-white/40">
-                Year <b className="font-medium text-white/75">{project.year}</b>
+              <span className="text-[.78rem] text-black/40 dark:text-white/40">
+                Year <b className="font-medium text-black/75 dark:text-white/75">{project.year}</b>
               </span>
             </div>
           )}
 
           {project.idea && (
             <>
-              <p className="mb-[.6rem] mt-6 text-[.72rem] font-semibold uppercase tracking-[.1em] text-white/35">
+              <p className="mb-[.6rem] mt-6 text-[.72rem] font-semibold uppercase tracking-[.1em] text-black/35 dark:text-white/35">
                 Why I built this
               </p>
-              <p className="m-0 text-[.88rem] leading-[1.7] text-white/[.68]">{project.idea}</p>
+              <p className="m-0 text-[.88rem] leading-[1.7] text-black/[.68] dark:text-white/[.68]">{project.idea}</p>
             </>
           )}
 
           {project.desc && (
             <>
-              <p className="mb-[.6rem] mt-6 text-[.72rem] font-semibold uppercase tracking-[.1em] text-white/35">
+              <p className="mb-[.6rem] mt-6 text-[.72rem] font-semibold uppercase tracking-[.1em] text-black/35 dark:text-white/35">
                 Overview
               </p>
-              <p className="m-0 text-[.88rem] leading-[1.7] text-white/[.68]">{project.desc}</p>
+              <p className="m-0 text-[.88rem] leading-[1.7] text-black/[.68] dark:text-white/[.68]">{project.desc}</p>
             </>
           )}
 
           {project.clientRequirements && project.clientRequirements.length > 0 && (
             <>
-              <p className="mb-[.6rem] mt-6 text-[.72rem] font-semibold uppercase tracking-[.1em] text-white/35">
+              <p className="mb-[.6rem] mt-6 text-[.72rem] font-semibold uppercase tracking-[.1em] text-black/35 dark:text-white/35">
                 Requirements
               </p>
               <ul className="m-0 flex list-none flex-col gap-2 p-0">
                 {project.clientRequirements.map((req, i) => (
                   <li
                     key={i}
-                    className="flex gap-[.6rem] rounded-[10px] border border-white/[.08] bg-white/[.03] px-3 py-[.55rem] text-[.82rem] text-white/[.68]"
+                    className="flex gap-[.6rem] rounded-[10px] border border-black/[.08] bg-black/[.03] px-3 py-[.55rem] text-[.82rem] text-black/[.68] dark:border-white/[.08] dark:bg-white/[.03] dark:text-white/[.68]"
                   >
-                    <span aria-hidden="true" className="flex-shrink-0 text-white/40">
+                    <span aria-hidden="true" className="flex-shrink-0 text-black/40 dark:text-white/40">
                       —
                     </span>
                     {req}
@@ -218,26 +208,31 @@ export default function ProjectDetailsModal({ project, onClose }: ProjectDetails
           )}
 
           {(project.review?.quote || project.review?.author) && (
-            <div className="mt-6 rounded-[14px] border border-white/[.1] bg-white/[.03] px-5 py-[1.1rem] backdrop-blur-md">
+            <div className="mt-6 rounded-[14px] border border-black/[.1] bg-black/[.03] px-5 py-[1.1rem] backdrop-blur-md dark:border-white/[.1] dark:bg-white/[.03]">
               {rating > 0 && (
-                <div className="mb-2 flex gap-[2px]">
+                <div
+                  className="mb-2 flex gap-[2px]"
+                  role="img"
+                  aria-label={`Rated ${rating} out of 5`}
+                >
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star
                       key={i}
                       size={14}
+                      aria-hidden="true"
                       fill={i <= rating ? accent : "none"}
-                      color={i <= rating ? accent : "rgba(255,255,255,.25)"}
+                      color={i <= rating ? accent : "rgba(128,128,128,.35)"}
                     />
                   ))}
                 </div>
               )}
               {project.review?.quote && (
-                <p className="m-0 mb-2 text-[.88rem] italic leading-[1.6] text-white/80">
+                <p className="m-0 mb-2 text-[.88rem] italic leading-[1.6] text-black/80 dark:text-white/80">
                   &ldquo;{project.review.quote}&rdquo;
                 </p>
               )}
               {project.review?.author && (
-                <p className="m-0 text-[.76rem] text-white/40">— {project.review.author}</p>
+                <p className="m-0 text-[.76rem] text-black/40 dark:text-white/40">— {project.review.author}</p>
               )}
             </div>
           )}

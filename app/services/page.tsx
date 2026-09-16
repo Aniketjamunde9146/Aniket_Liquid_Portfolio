@@ -1,51 +1,26 @@
+// Services.tsx
 "use client";
 
 import React, { useRef, useEffect, useState, useMemo } from "react";
+import Script from "next/script";
 import { ArrowUpRight } from "lucide-react";
 import ServiceDetailsModal, { type ServiceDetail } from "./ServiceDetailsModal";
 import { SERVICES } from "./ServicesData";
 
-/* ─────────────────────────────────────────────────────────────
-   Restyled to match Hero/About/Testimonials/TechStack.
-
-   Removed vs. the previous version, and why:
-   - Two infinitely-pulsing blobs (sv2Blob keyframe) — replaced
-     with static blurred glows, same treatment as every other
-     section.
-   - Animated grain layer + scanlines overlay — gone.
-   - Per-card gradient-border mask-exclude rim + odd/even rotate
-     tilt — replaced with the plain bordered-glass card used by
-     Testimonials' cards.
-   - Cursor-tracked radial sheen + click ripple on the card button
-     (ServiceCardButton's onMouseMove/onClickRipple, the whole
-     hover-capability gate) — removed; button now reuses the
-     Hero's plain hover lift + shine sweep.
-   - GSAP header timeline — replaced with the same one-shot
-     IntersectionObserver + CSS transition pattern used by every
-     other section's header.
-
-   Kept, because it's real functionality, not decoration:
-   - Draggable / auto-scrolling belt (rAF, pointer drag, resumes
-     after release, pauses off-screen/tab-hidden) — same pattern
-     as Testimonials.tsx.
-   - Service icon's brand-style accent color — kept as real info
-     (distinguishes services at a glance), same rationale as the
-     TechStack pill colors.
-   - JSON-LD ItemList/Service/Offer schema.
-───────────────────────────────────────────────────────────── */
-
 const LOOP: ServiceDetail[] = [...SERVICES, ...SERVICES];
 
 const CARD_BASE =
-  "group relative flex w-[320px] flex-none flex-col overflow-hidden rounded-[20px] border border-white/[.1] " +
-  "bg-white/[.03] p-7 backdrop-blur-md transition-all duration-300 ease-out " +
-  "hover:-translate-y-1 hover:border-white/25 hover:shadow-[0_24px_60px_rgba(0,0,0,.5)] " +
-  "max-sm:w-[280px]";
+  "group relative flex w-[320px] flex-none flex-col overflow-hidden rounded-[20px] border border-black/[.1] " +
+  "bg-black/[.03] p-7 backdrop-blur-md transition-all duration-300 ease-out " +
+  "hover:-translate-y-1 hover:border-black/25 hover:shadow-[0_24px_60px_rgba(0,0,0,.15)] " +
+  "max-sm:w-[280px] " +
+  "dark:border-white/[.1] dark:bg-white/[.03] dark:hover:border-white/25 dark:hover:shadow-[0_24px_60px_rgba(0,0,0,.5)]";
 
 const BTN_LEARN_MORE =
-  "group/btn relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-white/20 " +
-  "bg-white/[.04] px-5 py-2.5 font-body text-[.8rem] font-medium text-white no-underline backdrop-blur-lg " +
-  "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[.1] hover:shadow-[0_8px_24px_rgba(255,255,255,.08)]";
+  "group/btn relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-black/20 " +
+  "bg-black/[.03] px-5 py-2.5 font-body text-[.8rem] font-medium text-black no-underline backdrop-blur-lg " +
+  "transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-black/40 hover:bg-black/[.08] hover:shadow-[0_8px_24px_rgba(0,0,0,.08)] " +
+  "dark:border-white/20 dark:bg-white/[.04] dark:text-white dark:hover:border-white/40 dark:hover:bg-white/[.1] dark:hover:shadow-[0_8px_24px_rgba(255,255,255,.08)]";
 
 function wrapPos(p: number, totalW: number) {
   if (totalW <= 0) return 0;
@@ -91,8 +66,6 @@ export default function Services() {
     []
   );
 
-  // One-time entrance trigger — same pattern as About/Testimonials/TechStack.
-  // Also gates the belt's rAF loop, same as Testimonials.
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -107,7 +80,6 @@ export default function Services() {
     return () => obs.disconnect();
   }, []);
 
-  // Drives the belt — identical structure to Testimonials.tsx.
   useEffect(() => {
     const belt = beltRef.current;
     if (!belt) return;
@@ -214,35 +186,34 @@ export default function Services() {
         }
       `}</style>
 
+      <Script
+        id="services-jsonld"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <section
         id="services"
         ref={sectionRef}
         aria-labelledby="services-heading"
-        className="relative isolate overflow-hidden bg-black py-[clamp(5rem,10vh,8rem)] [content-visibility:auto] [contain-intrinsic-size:1100px]"
+        className="relative isolate overflow-hidden bg-[#FAFAFA] py-[clamp(5rem,10vh,8rem)] [content-visibility:auto] [contain-intrinsic-size:auto_1100px] dark:bg-black"
       >
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <div className="absolute inset-x-0 top-0 z-[3] h-px bg-[linear-gradient(90deg,transparent_0%,rgba(0,0,0,.06)_50%,transparent_100%)] dark:bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.08)_50%,transparent_100%)]" />
 
-        <div className="absolute inset-x-0 top-0 z-[3] h-px bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.08)_50%,transparent_100%)]" />
-
-        {/* Static ambient glow — same treatment as Hero/About/Testimonials/TechStack */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-[-12%] top-[8%] z-0 h-[clamp(300px,42vw,560px)] w-[clamp(300px,42vw,560px)] rounded-full bg-white/[.05] blur-[130px]"
+          className="pointer-events-none absolute left-[-12%] top-[8%] z-0 h-[clamp(300px,42vw,560px)] w-[clamp(300px,42vw,560px)] rounded-full bg-black/[.03] blur-[130px] dark:bg-white/[.05]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-[5%] right-[-10%] z-0 h-[clamp(260px,38vw,500px)] w-[clamp(260px,38vw,500px)] rounded-full bg-white/[.04] blur-[110px]"
+          className="pointer-events-none absolute bottom-[5%] right-[-10%] z-0 h-[clamp(260px,38vw,500px)] w-[clamp(260px,38vw,500px)] rounded-full bg-black/[.025] blur-[110px] dark:bg-white/[.04]"
         />
 
         <div className="relative z-[4] mx-auto flex max-w-[1200px] flex-col items-center px-[clamp(1.5rem,5vw,3.5rem)]">
-          {/* ── Header ── */}
           <div className="mb-[clamp(2rem,4vw,3.5rem)] max-w-[660px] text-center">
             <p
-              className={`mb-3 font-body text-[clamp(.6rem,.85vw,.7rem)] font-normal uppercase tracking-[.38em] text-white/30 transition-all duration-500 ${
+              className={`mb-3 font-body text-[clamp(.6rem,.85vw,.7rem)] font-normal uppercase tracking-[.38em] text-black/40 dark:text-white/30 transition-all duration-500 ${
                 visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
               }`}
             >
@@ -250,14 +221,14 @@ export default function Services() {
             </p>
             <h2
               id="services-heading"
-              className={`m-0 mb-[clamp(.9rem,1.8vw,1.3rem)] font-body text-[clamp(2.1rem,5.5vw,4.4rem)] font-semibold leading-[1.08] tracking-[-.03em] text-white transition-all delay-100 duration-700 ${
+              className={`m-0 mb-[clamp(.9rem,1.8vw,1.3rem)] font-body text-[clamp(2.1rem,5.5vw,4.4rem)] font-semibold leading-[1.08] tracking-[-.03em] text-black dark:text-white transition-all delay-100 duration-700 ${
                 visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
               }`}
             >
               What I Create
             </h2>
             <p
-              className={`font-body text-[clamp(.86rem,1.15vw,1rem)] font-normal leading-[1.8] text-white/50 transition-all delay-150 duration-700 ${
+              className={`font-body text-[clamp(.86rem,1.15vw,1rem)] font-normal leading-[1.8] text-black/60 dark:text-white/50 transition-all delay-150 duration-700 ${
                 visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
               }`}
             >
@@ -266,11 +237,10 @@ export default function Services() {
             </p>
           </div>
 
-          {/* Full-bleed drag-to-scroll belt */}
           <div
             className={`relative left-1/2 mb-2 w-screen -translate-x-1/2 overflow-hidden transition-opacity duration-700 delay-200 ${
               visible ? "opacity-100" : "opacity-0"
-            } before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-[clamp(4rem,10vw,9rem)] before:content-[''] before:[background:linear-gradient(to_right,#000_0%,transparent_100%)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-[clamp(4rem,10vw,9rem)] after:content-[''] after:[background:linear-gradient(to_left,#000_0%,transparent_100%)]`}
+            } before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-[clamp(4rem,10vw,9rem)] before:content-[''] before:[background:linear-gradient(to_right,#FAFAFA_0%,transparent_100%)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-[clamp(4rem,10vw,9rem)] after:content-[''] after:[background:linear-gradient(to_left,#FAFAFA_0%,transparent_100%)] dark:before:[background:linear-gradient(to_right,#000_0%,transparent_100%)] dark:after:[background:linear-gradient(to_left,#000_0%,transparent_100%)]`}
           >
             <div className="overflow-hidden py-4">
               <ul
@@ -291,19 +261,19 @@ export default function Services() {
                       <div className="mb-5 flex items-center justify-between">
                         <div
                           aria-hidden="true"
-                          className="flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/[.1] bg-white/[.05] text-[var(--clr)]"
+                          className="flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-black/[.1] bg-black/[.04] text-[var(--clr)] dark:border-white/[.1] dark:bg-white/[.05]"
                         >
                           <Icon size={22} />
                         </div>
-                        <span className="font-body text-[1.4rem] font-bold tracking-[-.03em] text-white/15">
+                        <span className="font-body text-[1.4rem] font-bold tracking-[-.03em] text-black/15 dark:text-white/15">
                           {service.id}
                         </span>
                       </div>
 
-                      <h3 className="m-0 mb-2.5 font-body text-[clamp(1.1rem,1.8vw,1.35rem)] font-semibold tracking-[-.02em] text-white">
+                      <h3 className="m-0 mb-2.5 font-body text-[clamp(1.1rem,1.8vw,1.35rem)] font-semibold tracking-[-.02em] text-black dark:text-white">
                         {service.title}
                       </h3>
-                      <p className="m-0 mb-5 flex-1 font-body text-[.85rem] font-normal leading-[1.7] text-white/45">
+                      <p className="m-0 mb-5 flex-1 font-body text-[.85rem] font-normal leading-[1.7] text-black/55 dark:text-white/45">
                         {service.description}
                       </p>
 
@@ -311,7 +281,7 @@ export default function Services() {
                         {service.points.map((pt) => (
                           <li
                             key={pt}
-                            className="flex items-center gap-2 font-body text-[.8rem] font-normal text-white/55"
+                            className="flex items-center gap-2 font-body text-[.8rem] font-normal text-black/65 dark:text-white/55"
                           >
                             <span
                               aria-hidden="true"
@@ -322,11 +292,11 @@ export default function Services() {
                         ))}
                       </ul>
 
-                      <div className="mb-5 flex items-center justify-between border-t border-white/[.08] pt-4">
-                        <span className="font-body text-[.66rem] font-medium uppercase tracking-[.12em] text-white/30">
+                      <div className="mb-5 flex items-center justify-between border-t border-black/[.08] pt-4 dark:border-white/[.08]">
+                        <span className="font-body text-[.66rem] font-medium uppercase tracking-[.12em] text-black/40 dark:text-white/30">
                           From
                         </span>
-                        <span className="rounded-full border border-white/[.1] bg-white/[.04] px-3 py-1 font-body text-[.84rem] font-semibold text-white">
+                        <span className="rounded-full border border-black/[.1] bg-black/[.03] px-3 py-1 font-body text-[.84rem] font-semibold text-black dark:border-white/[.1] dark:bg-white/[.04] dark:text-white">
                           {startingPrice}
                         </span>
                       </div>
@@ -354,7 +324,7 @@ export default function Services() {
           </div>
 
           <p
-            className={`font-body text-[.72rem] font-normal tracking-[.08em] text-white/25 transition-opacity duration-700 delay-300 ${
+            className={`font-body text-[.72rem] font-normal tracking-[.08em] text-black/35 dark:text-white/25 transition-opacity duration-700 delay-300 ${
               visible ? "opacity-100" : "opacity-0"
             }`}
           >

@@ -1,66 +1,69 @@
 import { MetadataRoute } from "next";
+import { getAllSlugs } from "./blogs/blogs";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://aniketwebdev.in";
+const baseUrl = "https://aniketwebdev.in";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const blogSlugs = await getAllSlugs();
 
   return [
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "weekly",
       priority: 1,
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/services`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/skills`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/project`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/blogs`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "weekly",
       priority: 0.9,
     },
-    {
-      url: `${baseUrl}/blogs/why-choose-flutter-for-app-development-in-2026`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
+    ...blogSlugs.map((slug) => ({
+      url: `${baseUrl}/blogs/${slug}`,
+      lastModified: "2026-09-16",
+      changeFrequency: "monthly" as const,
       priority: 0.8,
-    },
+    })),
     {
       url: `${baseUrl}/contact`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/techstack`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${baseUrl}/terms-and-conditions`,
-      lastModified: new Date(),
+      lastModified: "2026-09-16",
       changeFrequency: "yearly",
       priority: 0.3,
     },

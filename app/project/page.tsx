@@ -31,10 +31,8 @@ export default async function ProjectPage() {
   const projects = await getProjects();
 
   return (
-    <main className="relative min-h-screen bg-black">
-      
-
-      <ProjectsSection projects={projects} />
+    <main className="relative min-h-screen bg-[#FAFAFA] dark:bg-black">
+      <ProjectsSection projects={projects} headingTag="h1" />
     </main>
   );
 }

@@ -7,14 +7,22 @@ const WORDS = ["Bring", "Ideas", "to", "Reality..."];
 
 interface SplashProps {
   onDone?: () => void;
+  /** Skip the entrance/hold and jump straight to the exit (e.g. already seen this session) */
+  skip?: boolean;
 }
 
-export default function Splash({ onDone }: SplashProps) {
+export default function Splash({ onDone, skip = false }: SplashProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<HTMLDivElement>(null);
   const wordRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const hasRun = useRef(false); // guards against Strict Mode's double effect invocation
+
+  // Keep the latest onDone without re-running the effect or risking a stale closure
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     if (hasRun.current) return;
@@ -28,9 +36,23 @@ export default function Splash({ onDone }: SplashProps) {
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    if (reduceMotion) {
-      gsap.set([...words, line, sub], { opacity: 1, y: 0, scaleX: 1, filter: "blur(0px)" });
-      const id = setTimeout(() => onDone?.(), 400);
+    // Fast path: skip prop or reduced motion — show briefly (or not at all), then fade the
+    // whole overlay out so it doesn't stay stuck covering the page.
+    if (skip || reduceMotion) {
+      gsap.set(words, { opacity: 1, y: 0, filter: "blur(0px)" });
+      gsap.set(line, { scaleX: 1, opacity: 1 });
+      gsap.set(sub, { opacity: 1, y: 0, filter: "blur(0px)" });
+
+      const holdMs = skip ? 0 : 400;
+      const id = setTimeout(() => {
+        gsap.to(wrap, {
+          opacity: 0,
+          duration: 0.3,
+          ease: "power1.out",
+          onComplete: () => onDoneRef.current?.(),
+        });
+      }, holdMs);
+
       return () => clearTimeout(id);
     }
 
@@ -70,14 +92,15 @@ export default function Splash({ onDone }: SplashProps) {
           yPercent: -100,
           duration: 1.1,
           ease: "power4.inOut",
-          onComplete: () => onDone?.(),
+          onComplete: () => onDoneRef.current?.(),
         },
         "-=0.15"
       );
     }, wrapRef);
 
     return () => ctx.revert();
-  }, [onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally runs once; onDone read via ref
+  }, [skip]);
 
   return (
     <div
@@ -88,15 +111,18 @@ export default function Splash({ onDone }: SplashProps) {
     >
       <span className="sr-only">Loading Aniket Jamunde&apos;s portfolio</span>
 
-      <div className="flex flex-col items-center gap-[1.1rem]" aria-hidden="true">
-        <div className="flex flex-wrap justify-center gap-[0.3em]" style={{ perspective: "600px" }}>
+      <div className="flex flex-col items-center gap-[1.1rem] px-4" aria-hidden="true">
+        <div
+          className="flex flex-wrap justify-center gap-[0.3em]"
+          style={{ perspective: "600px" }}
+        >
           {WORDS.map((word, i) => (
             <span
               key={word + i}
               ref={(el) => {
                 wordRefs.current[i] = el;
               }}
-              className="inline-block font-body text-[clamp(2.6rem,7.5vw,6.4rem)] font-semibold leading-[1.04] tracking-[-0.04em] text-white will-change-transform"
+              className="inline-block font-body text-[clamp(2.2rem,7.5vw,6.4rem)] font-semibold leading-[1.04] tracking-[-0.04em] text-white will-change-transform"
             >
               {word}
             </span>
@@ -105,12 +131,12 @@ export default function Splash({ onDone }: SplashProps) {
 
         <div
           ref={lineRef}
-          className="h-[1.5px] w-[220px] rounded-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.75)_40%,rgba(255,255,255,.75)_60%,transparent_100%)] will-change-transform"
+          className="h-[1.5px] w-[min(220px,60vw)] rounded-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.75)_40%,rgba(255,255,255,.75)_60%,transparent_100%)] will-change-transform"
         />
 
         <div
           ref={subRef}
-          className="font-body text-[clamp(0.62rem,1.15vw,0.76rem)] font-normal uppercase tracking-[0.32em] text-white/30 will-change-transform"
+          className="font-body text-[clamp(0.62rem,1.15vw,0.76rem)] font-normal uppercase tracking-[0.32em] text-white/30 text-center will-change-transform"
         >
           Aniket Jamunde — Portfolio
         </div>

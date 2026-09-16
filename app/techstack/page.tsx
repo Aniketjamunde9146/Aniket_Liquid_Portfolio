@@ -23,28 +23,6 @@ import {
 import { TbApi, TbApps } from "react-icons/tb";
 import type { IconType } from "react-icons";
 
-/* ─────────────────────────────────────────────────────────────
-   TechStack v4 — glass cards + watermark pass.
-
-   What changed from v3:
-   - The small "Name — note" caption line under the marquee is
-     gone. In its place: a single huge, very-faint word rendered
-     behind the marquee itself, showing whichever card is
-     active. It's a watermark, not UI — it never competes for
-     contrast with the icons/labels sitting in front of it.
-   - Cards moved from flat "border + bg-white/[.02]" to an actual
-     glass treatment: a top-to-bottom gradient fill, a hairline
-     inset highlight along the top edge (the classic glass
-     "light catching the rim" cue), and a soft colored glow that
-     only appears on hover/focus, using the tech's own brand
-     color instead of a generic white glow. Still one CSS
-     transition per card, still no JS-driven per-frame styling
-     beyond the icon's existing colorization.
-   - Everything else — the two-row opposite-direction GSAP loop,
-     the interlock offset, the edge fades, reduced-motion
-     fallback, JSON-LD — is untouched.
-───────────────────────────────────────────────────────────── */
-
 type Category = "Frontend" | "Mobile" | "Backend & Cloud" | "Tools";
 
 interface Tech {
@@ -57,7 +35,7 @@ interface Tech {
 
 const TECH: Tech[] = [
   { name: "React.js", Icon: SiReact, color: "#61DAFB", category: "Frontend", note: "Component-driven UIs, daily driver." },
-  { name: "Next.js", Icon: SiNextdotjs, color: "#ffffff", category: "Frontend", note: "SSR, routing & full-stack React." },
+  { name: "Next.js", Icon: SiNextdotjs, color: "#0b0b0b", category: "Frontend", note: "SSR, routing & full-stack React." },
   { name: "TypeScript", Icon: SiTypescript, color: "#3178C6", category: "Frontend", note: "Type-safe code, fewer bugs." },
   { name: "JavaScript", Icon: SiJavascript, color: "#F7DF1E", category: "Frontend", note: "The foundation underneath it all." },
   { name: "HTML5", Icon: SiHtml5, color: "#E34F26", category: "Frontend", note: "Semantic, accessible markup." },
@@ -114,41 +92,31 @@ function MarqueeCard({
           "--tc": color,
         } as React.CSSProperties
       }
-      className="group/card relative flex h-[92px] w-[104px] flex-none flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-white/[.09] bg-[linear-gradient(180deg,rgba(255,255,255,.055)_0%,rgba(255,255,255,.015)_100%)] shadow-[inset_0_1px_0_0_rgba(255,255,255,.09),0_1px_2px_rgba(0,0,0,.4)] backdrop-blur-[2px] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-white/[.16] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,.14),0_10px_28px_-8px_var(--tc),0_1px_2px_rgba(0,0,0,.4)] focus-visible:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40 focus-visible:outline-offset-2"
+      className="group/card relative flex h-[92px] w-[104px] flex-none flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-black/[.1] bg-[linear-gradient(180deg,rgba(0,0,0,.045)_0%,rgba(0,0,0,.012)_100%)] shadow-[inset_0_1px_0_0_rgba(0,0,0,.06),0_1px_2px_rgba(0,0,0,.08)] backdrop-blur-[2px] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-black/[.2] hover:shadow-[inset_0_1px_0_0_rgba(0,0,0,.1),0_10px_28px_-8px_var(--tc),0_1px_2px_rgba(0,0,0,.08)] focus-visible:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black/40 focus-visible:outline-offset-2 dark:border-white/[.09] dark:bg-[linear-gradient(180deg,rgba(255,255,255,.055)_0%,rgba(255,255,255,.015)_100%)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,.09),0_1px_2px_rgba(0,0,0,.4)] dark:hover:border-white/[.16] dark:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,.14),0_10px_28px_-8px_var(--tc),0_1px_2px_rgba(0,0,0,.4)] dark:focus-visible:outline-white/40"
     >
       {/* Hairline rim highlight — the "glass edge" cue, brand-colored on hover */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 ease-out group-hover/card:opacity-100"
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 ease-out group-hover/card:opacity-100 group-focus-visible/card:opacity-100"
         style={{
           background: `linear-gradient(180deg, ${color}33 0%, transparent 40%)`,
         }}
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-3 top-0 h-px opacity-40 transition-opacity duration-300 ease-out group-hover/card:opacity-90"
+        className="pointer-events-none absolute inset-x-3 top-0 h-px opacity-40 transition-opacity duration-300 ease-out group-hover/card:opacity-90 group-focus-visible/card:opacity-90"
         style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
       />
 
+      {/* Opacity + glow now driven by group-hover/group-focus-visible, so keyboard
+          focus and mouse hover produce the identical result — previously the glow
+          filter and full opacity only fired on mouse events. */}
       <Icon
         aria-hidden="true"
-        className="relative h-8 w-8 grayscale transition-all duration-300 ease-out group-hover/card:scale-110 group-hover/card:grayscale-0 group-focus-visible/card:grayscale-0"
-        style={
-          {
-            color,
-            opacity: 0.55,
-          } as React.CSSProperties
-        }
-        onMouseEnter={(e) => {
-          (e.currentTarget as SVGElement).style.opacity = "1";
-          (e.currentTarget as SVGElement).style.filter = `drop-shadow(0 6px 16px ${color}66)`;
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as SVGElement).style.opacity = "0.55";
-          (e.currentTarget as SVGElement).style.filter = "none";
-        }}
+        className="relative h-8 w-8 opacity-[.55] grayscale transition-all duration-300 ease-out group-hover/card:scale-110 group-hover/card:opacity-100 group-hover/card:grayscale-0 group-hover/card:drop-shadow-[0_6px_16px_var(--tc)] group-focus-visible/card:scale-110 group-focus-visible/card:opacity-100 group-focus-visible/card:grayscale-0 group-focus-visible/card:drop-shadow-[0_6px_16px_var(--tc)]"
+        style={{ color } as React.CSSProperties}
       />
-      <span className="relative font-body text-[.68rem] font-medium tracking-[.01em] text-white/50 transition-colors duration-300 ease-out group-hover/card:text-white/90">
+      <span className="relative font-body text-[.68rem] font-medium tracking-[.01em] text-black/55 transition-colors duration-300 ease-out group-hover/card:text-black/90 group-focus-visible/card:text-black/90 dark:text-white/50 dark:group-hover/card:text-white/90 dark:group-focus-visible/card:text-white/90">
         {name}
       </span>
     </div>
@@ -157,6 +125,7 @@ function MarqueeCard({
 
 export default function TechStack() {
   const [visible, setVisible] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false); // safe SSR default; corrected post-mount below
   const [activeNote, setActiveNote] = useState<string | null>(null);
   const activeStackRef = useRef<string[]>([]);
 
@@ -172,7 +141,17 @@ export default function TechStack() {
     [activeNote]
   );
 
-  // Entrance fade — identical pattern to every other section on the site.
+  // Read the real reduced-motion preference only after mount, so the server-
+  // rendered markup and the very first client render agree (avoids swapping
+  // between the marquee <div> and the fallback <ul> right after hydration).
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduceMotion(mq.matches);
+    const onChange = () => setReduceMotion(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -189,13 +168,7 @@ export default function TechStack() {
     return () => obs.disconnect();
   }, []);
 
-  // The marquee itself. Each row's content is duplicated so a tween
-  // to exactly -50% xPercent loops with zero seam, at constant speed,
-  // forever — no drift, no reset-jump.
   useEffect(() => {
-    const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) return;
 
     const row1 = row1Ref.current;
@@ -217,16 +190,13 @@ export default function TechStack() {
     });
 
     return () => ctx.revert();
-  }, []);
+  }, [reduceMotion]);
 
   const setRowsPaused = (paused: boolean) => {
     tween1.current?.[paused ? "pause" : "resume"]();
     tween2.current?.[paused ? "pause" : "resume"]();
   };
 
-  // Support two cards being hovered/focused in quick succession
-  // (pointer leaving one card and entering the next) without the
-  // watermark flickering to empty in between.
   const handleActivate = (name: string) => {
     activeStackRef.current = [...activeStackRef.current.filter((n) => n !== name), name];
     setActiveNote(name);
@@ -238,10 +208,6 @@ export default function TechStack() {
     setActiveNote(next);
     if (!next) setRowsPaused(false);
   };
-
-  const reduceMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return (
     <>
@@ -266,29 +232,26 @@ export default function TechStack() {
         id="techstack"
         ref={sectionRef}
         aria-labelledby="techstack-heading"
-        className="relative isolate overflow-hidden bg-black py-[clamp(5rem,10vh,8rem)] [content-visibility:auto] [contain-intrinsic-size:1000px]"
+        className="relative isolate overflow-hidden bg-[#FAFAFA] py-[clamp(5rem,10vh,8rem)] [content-visibility:auto] [contain-intrinsic-size:auto_1000px] dark:bg-black"
       >
-        <div className="absolute inset-x-0 top-0 z-[3] h-px bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.08)_50%,transparent_100%)]" />
+        <div className="absolute inset-x-0 top-0 z-[3] h-px bg-[linear-gradient(90deg,transparent_0%,rgba(0,0,0,.06)_50%,transparent_100%)] dark:bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,.08)_50%,transparent_100%)]" />
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-[0%] left-[-10%] z-0 h-[clamp(280px,40vw,520px)] w-[clamp(280px,40vw,520px)] rounded-full bg-white/[.05] blur-[130px]"
+          className="pointer-events-none absolute bottom-[0%] left-[-10%] z-0 h-[clamp(280px,40vw,520px)] w-[clamp(280px,40vw,520px)] rounded-full bg-black/[.03] blur-[130px] dark:bg-white/[.05]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-10%] top-0 z-0 h-[clamp(300px,42vw,560px)] w-[clamp(300px,42vw,560px)] rounded-full bg-white/[.04] blur-[120px]"
+          className="pointer-events-none absolute right-[-10%] top-0 z-0 h-[clamp(300px,42vw,560px)] w-[clamp(300px,42vw,560px)] rounded-full bg-black/[.025] blur-[120px] dark:bg-white/[.04]"
         />
 
-        {/* ── Background watermark — replaces the old caption line.
-            Huge, near-invisible text sitting behind the marquee;
-            swaps to whichever card is currently active. Purely
-            decorative (aria-hidden), so it never fights the
-            marquee's own aria-labels for screen readers. ── */}
+        {/* Background watermark — swaps color per theme so it stays a genuine
+            near-invisible watermark instead of white-on-white in light mode. */}
         {activeTech && (
           <div
             aria-hidden="true"
             key={activeTech.name}
-            className="pointer-events-none absolute left-1/2 top-1/2 z-[1] w-full select-none whitespace-nowrap text-center font-body font-bold uppercase leading-none tracking-[-.02em] text-white [animation:tsWatermarkIn_.5s_cubic-bezier(.16,1,.3,1)]"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-[1] w-full select-none whitespace-nowrap text-center font-body font-bold uppercase leading-none tracking-[-.02em] text-black dark:text-white [animation:tsWatermarkIn_.5s_cubic-bezier(.16,1,.3,1)]"
             style={{
               fontSize: "clamp(3rem, 13vw, 11rem)",
               opacity: 0.05,
@@ -303,7 +266,7 @@ export default function TechStack() {
           {/* ── Header ── */}
           <div className="mb-[clamp(2.6rem,5vw,3.8rem)] max-w-[720px] text-center">
             <p
-              className={`mb-3 font-body text-[clamp(.6rem,.85vw,.7rem)] font-normal uppercase tracking-[.38em] text-white/30 transition-all duration-500 ${
+              className={`mb-3 font-body text-[clamp(.6rem,.85vw,.7rem)] font-normal uppercase tracking-[.38em] text-black/40 dark:text-white/30 transition-all duration-500 ${
                 visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
               }`}
             >
@@ -311,14 +274,14 @@ export default function TechStack() {
             </p>
             <h2
               id="techstack-heading"
-              className={`m-0 mb-[clamp(.9rem,1.8vw,1.3rem)] font-body text-[clamp(2.1rem,5.5vw,4.2rem)] font-semibold leading-[1.08] tracking-[-.03em] text-white transition-all delay-100 duration-700 ${
+              className={`m-0 mb-[clamp(.9rem,1.8vw,1.3rem)] font-body text-[clamp(2.1rem,5.5vw,4.2rem)] font-semibold leading-[1.08] tracking-[-.03em] text-black dark:text-white transition-all delay-100 duration-700 ${
                 visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
               }`}
             >
               My Tech Stack
             </h2>
             <p
-              className={`font-body text-[clamp(.86rem,1.15vw,1rem)] font-normal leading-[1.8] text-white/50 transition-all delay-150 duration-700 ${
+              className={`font-body text-[clamp(.86rem,1.15vw,1rem)] font-normal leading-[1.8] text-black/60 dark:text-white/50 transition-all delay-150 duration-700 ${
                 visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
               }`}
             >
@@ -345,7 +308,7 @@ export default function TechStack() {
             <div
               className={`relative w-screen overflow-hidden transition-opacity delay-200 duration-700 ${
                 visible ? "opacity-100" : "opacity-0"
-              } before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-[clamp(3rem,8vw,7rem)] before:content-[''] before:[background:linear-gradient(to_right,#000_0%,transparent_100%)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-[clamp(3rem,8vw,7rem)] after:content-[''] after:[background:linear-gradient(to_left,#000_0%,transparent_100%)]`}
+              } before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-[clamp(3rem,8vw,7rem)] before:content-[''] before:[background:linear-gradient(to_right,#FAFAFA_0%,transparent_100%)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-[clamp(3rem,8vw,7rem)] after:content-[''] after:[background:linear-gradient(to_left,#FAFAFA_0%,transparent_100%)] dark:before:[background:linear-gradient(to_right,#000_0%,transparent_100%)] dark:after:[background:linear-gradient(to_left,#000_0%,transparent_100%)]`}
               onMouseEnter={() => setRowsPaused(true)}
               onMouseLeave={() => {
                 if (activeStackRef.current.length === 0) setRowsPaused(false);
