@@ -26,10 +26,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function BlogsPage() {
+export default async function BlogsPage({ headingTag = "h1" }: { headingTag?: "h1" | "h2" }) {
   const posts = (await getAllPosts()).sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+  const Heading = headingTag;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -107,7 +108,7 @@ export default async function BlogsPage() {
         <div className="bl-inner">
           <header className="bl-head">
             <p className="bl-eyebrow">Blog</p>
-            <h1 className="bl-title">Notes on shipping good software</h1>
+            <Heading className="bl-title">Notes on shipping good software</Heading>
             <p className="bl-desc">
               Practical write-ups on web and app development, cloud infrastructure, AI
               integration, and SEO — drawn from real client work, not theory.

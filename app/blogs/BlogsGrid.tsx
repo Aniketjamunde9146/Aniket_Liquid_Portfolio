@@ -69,7 +69,11 @@ export default function BlogsGrid({ posts }: { posts: BlogPost[] }) {
             >
               <div className="bg-card-cover" aria-hidden="true">
                 {post.coverImage ? (
-                  <img src={post.coverImage} alt="" className="bg-card-cover-img" />
+                  <img
+                    src={post.coverImage}
+                    alt={`${post.title} article cover`}
+                    className="bg-card-cover-img"
+                  />
                 ) : null}
                 <span className="bg-card-cat">{post.category}</span>
               </div>
