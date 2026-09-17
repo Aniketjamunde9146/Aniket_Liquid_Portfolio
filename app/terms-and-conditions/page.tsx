@@ -6,7 +6,7 @@ import { Mail } from "lucide-react";
 import { SmartBack } from "../theme/ThemeComponents";
 
 const SITE_NAME = "aniketwebdev.in";
-const CONTACT_EMAIL = "aniketjamunde@zohomail.com";
+const CONTACT_EMAIL = "hello@aniketwebdev.in";
 const LAST_UPDATED = "August 6, 2026";
 
 type Clause = {

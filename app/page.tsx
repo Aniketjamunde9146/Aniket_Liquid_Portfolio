@@ -8,7 +8,6 @@ import TechThicker from "./techstack/page";
 import Testimonials from "./testinomals/page";
 import HowIWork from "./work/page";
 import BlogSection from "../app/blogs/page";
-import SplashGate from "./SplashGate";
 import { getProjects } from "./data/Projects";
 import { getTestimonials } from "@/app/lib/testimonials";
 import ChatWidget from "./components/ChatWidget";
@@ -18,7 +17,7 @@ export default async function Page() {
   const testimonials = await getTestimonials();
 
   return (
-    <SplashGate>
+    <>
       <Hero />
       <ProjectsSection projects={projects} headingTag="h2" />
       <About />
@@ -30,7 +29,7 @@ export default async function Page() {
       <Contact />
       <Footer />
       <ChatWidget />
-    </SplashGate>
+    </>
   );
 
 }

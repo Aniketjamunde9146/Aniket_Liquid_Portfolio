@@ -82,7 +82,7 @@ const CONTACT_JSON_LD = {
       {
         "@type": "ContactPoint",
         contactType: "sales",
-        email: "aniketjamunde@zohomail.com",
+        email: "hello@aniketwebdev.in",
         telephone: "+91-9146293702",
         availableLanguage: ["English"],
       },
@@ -178,7 +178,7 @@ export default function Contact() {
   };
 
   const infoItems = [
-    { icon: <Mail size={16} aria-hidden="true" />, text: "aniketjamunde@zohomail.com" },
+    { icon: <Mail size={16} aria-hidden="true" />, text: "hello@aniketwebdev.in" },
     { icon: <Phone size={16} aria-hidden="true" />, text: "+91 9146293702" },
     { icon: <Briefcase size={16} aria-hidden="true" />, text: "Available for freelance & full-time" },
   ];
