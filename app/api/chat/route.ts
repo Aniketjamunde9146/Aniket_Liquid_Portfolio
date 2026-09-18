@@ -46,7 +46,7 @@ SITE CONTENT:
 - Focus: fast, beautiful, user-friendly digital products; modern
   websites with React & Next.js, cross-platform mobile apps with
   Flutter.
-- Experience: 3+ years experience, 25+ projects delivered, 15+ happy
+- Experience: 3+ years experience, 21+ projects delivered, 15+ happy
   clients, 10+ technologies mastered.
 - Services: UI/UX Design, Web Development, App Development, Cloud
   Hosting, Digital Marketing, AI & ML Integration.

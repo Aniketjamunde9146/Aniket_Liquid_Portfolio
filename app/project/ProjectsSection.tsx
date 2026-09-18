@@ -94,6 +94,10 @@ const BTN_PRIMARY =
   "hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(0,0,0,.25)] " +
   "dark:bg-white dark:text-black dark:hover:shadow-[0_8px_28px_rgba(255,255,255,.25)]";
 
+function isGoogleDriveLink(url?: string): boolean {
+  return Boolean(url && /(?:^|\.)drive\.google\.com|google\.com\/file\/d\//i.test(url));
+}
+
 /* ─────────────────────────────────────────────────────────────
    PROJECT CARD
 ───────────────────────────────────────────────────────────── */
@@ -120,6 +124,8 @@ const ProjectCard = React.forwardRef<HTMLDivElement, ProjectCardProps>(
     }, [isTouch]);
 
     const href = project.links?.view || project.links?.apk;
+    const isDriveLink = isGoogleDriveLink(href);
+    const actionLabel = isDriveLink ? "Watch demo (2 min)" : "View";
     const imgAlt = project.tagline
       ? `${project.name} — ${project.tagline} project screenshot`
       : `${project.name} project screenshot`;
@@ -175,10 +181,10 @@ const ProjectCard = React.forwardRef<HTMLDivElement, ProjectCardProps>(
                 target="_blank"
                 rel="noopener noreferrer"
                 className={CARD_LINK_BASE}
-                aria-label={`View ${project.name} — opens in a new tab`}
+                aria-label={`${actionLabel} ${project.name} — opens in a new tab`}
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="relative z-[1]">View</span>
+                <span className="relative z-[1]">{actionLabel}</span>
                 <ArrowRight
                   size={13}
                   aria-hidden="true"
@@ -400,8 +406,8 @@ export default function ProjectsSection({
           ))}
         </div>
 
-        {hasMore && (
-          <div className="mt-[clamp(2rem,4vw,3rem)] flex w-full justify-center px-4 sm:w-auto sm:px-0">
+        <div className="mt-[clamp(2rem,4vw,3rem)] flex w-full flex-col items-center justify-center gap-3 px-4 sm:w-auto sm:flex-row sm:px-0">
+          {hasMore && (
             <a href={viewAllHref} className={`${BTN_PRIMARY} w-full sm:w-auto`}>
               <span className="relative z-[1] inline-flex items-center gap-2">
                 View All Projects
@@ -413,8 +419,11 @@ export default function ProjectsSection({
               </span>
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-black/10" />
             </a>
-          </div>
-        )}
+          )}
+          <a href="/case-studies" className="inline-flex items-center justify-center rounded-xl border border-black/20 bg-black/[0.03] px-8 py-3 font-body text-[0.9rem] font-medium text-black no-underline transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-black/40 hover:bg-black/[0.07] dark:border-white/20 dark:bg-white/[0.04] dark:text-white dark:hover:border-white/40 dark:hover:bg-white/[0.1]">
+            See Case Studies
+          </a>
+        </div>
       </div>
       {detailProject && (
         <ProjectDetailsModal

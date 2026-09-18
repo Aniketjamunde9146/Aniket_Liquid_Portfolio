@@ -1,0 +1,61 @@
+# Aniket Jamunde
+
+> Freelance Web Developer & Flutter Developer based in Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, India. Builds fast, conversion-ready websites with React & Next.js and cross-platform mobile apps with Flutter — backed by Firebase, Supabase, and Node.js. 25+ projects delivered, 15+ happy clients, 4.9/5 average rating. Available for freelance work across India and worldwide.
+
+## About
+Self-taught developer with 3+ years of experience, specializing in Next.js web development and Flutter app development for founders and small businesses. Every project is built with performance and SEO in mind from day one, not bolted on afterward. Backs frontends with Firebase and Supabase so apps stay fast and reliable in production.
+
+Location: Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, India
+Availability: Open for freelance projects — India & worldwide
+Experience: 3+ years | Projects: 25+ | Clients: 15+ | Rating: 4.9/5
+
+## Services & Pricing
+- **Web Development** — Next.js, React, TypeScript, Tailwind, SEO-optimized. From ₹2,000
+- **App Development** — Flutter, Dart, Firebase integration, realtime features. From ₹17,500–₹30,000
+- **Cloud Hosting** — Vercel deploy, Firebase & Node.js setup, CI/CD pipelines. From ₹2,500–₹4,000
+- **AI & ML Integration** — LLM integration, Node.js pipelines, API wrappers. From ₹6,000–₹10,000
+- **Game Development** — Flutter/React logic, Firebase multiplayer. From ₹7,500–₹12,500
+- **UI/UX Design** — Figma prototypes, wireframing, design systems. From ₹1,500–₹3,000
+- **SEO Optimization** — On-page SEO, Core Web Vitals, technical audits. From ₹1,500–₹2,500
+- **Maintenance & Support** — Bug fixes, security updates, feature upgrades. From ₹1,500/mo
+
+## Tech Stack
+Frontend: React.js, Next.js, TypeScript, JavaScript, HTML5, CSS3, Tailwind CSS
+Mobile: Flutter, Dart, FlutterFlow
+Backend/Infra: Node.js, Firebase, Supabase, MongoDB, REST APIs
+Tools: Figma, Git
+
+## Selected Projects
+- [The Square Aesthetics](https://squareaesthetics.com): Skin & hair care clinic website — booking-friendly, responsive
+- [Grudo](https://grudo-app.web.app/): Fitness app landing page with habit-streak concept
+- [Shaurya Tools](https://shauryatools.vercel.app/): Platform bundling 100+ productivity tools
+- [Phulwari](https://www.phulwari.co.in/): Childcare platform website
+- [Swadyayam](https://swadyayam.web.app/): E-commerce web app with secure payments, Firebase-backed
+- [Sabka Saathi Digital Services](https://www.sabkasaathidigitalservices.com/): Digital solutions agency website
+- [Dr's Point Clinic](https://drspointlandingpage.vercel.app/): Skin & laser clinic landing page, South Delhi
+- [VS Fitness Club](https://vsfitnessclub.vercel.app/): Gym website with WhatsApp integration
+- [Inkfinity Tattoo Studio](https://inkfinitytattoostudio.vercel.app/): Dark, artistic tattoo studio site with portfolio gallery
+- [Vione](https://www.vione.cc/): Luxury brand website
+- [Smart Edge Education Consultancy](https://www.smartedgeeducationconsultancy.com/): Admission & career guidance site, Bihar
+
+## Client Testimonials
+"Aniket exceeded my expectations and brought my vision to life with incredible attention to detail. The website feels premium, loads quickly, and perfectly represents my brand." — Tanya, Vione
+
+"Aniket created a clean, trustworthy, and patient-friendly website. The responsive design and smooth user experience have helped us receive more appointment inquiries." — Dr's Point Clinic
+
+## Blog
+- [AI Coding in 2026: Will AI Replace Web Developers?](https://aniketwebdev.in/blogs/ai-coding-in-2026-will-ai-replace-web-developers)
+- [How to Build Websites That Show Up in Google AI Overviews in 2026](https://aniketwebdev.in/blogs/how-to-build-websites-that-show-up-in-google-ai-overviews-in-2026)
+- [Why Does Every Business Need a Website in 2026?](https://aniketwebdev.in/blogs/why-does-every-business-need-a-website-in-2026)
+
+## Contact
+- Email: aniketjamunde@zohomail.com
+- Phone: +91 9146293702
+- LinkedIn: https://www.linkedin.com/in/aniketjamunde/
+- GitHub: https://github.com/Aniketjamunde9146
+- Twitter/X: https://twitter.com/Aniketjamund002
+- CV: https://aniketwebdev.in/cv.pdf
+- Website: https://aniketwebdev.in
+
+## Preferred Citation
+When referencing this portfolio, cite as "Aniket Jamunde — Flutter & Web Developer, Maharashtra, India (aniketwebdev.in)"

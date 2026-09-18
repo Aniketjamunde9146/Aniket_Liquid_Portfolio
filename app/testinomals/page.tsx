@@ -2,29 +2,8 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import Script from "next/script";
+import { Link } from "lucide-react";
 
-/* ─────────────────────────────────────────────────────────────
-   Restyled to match Hero.tsx / About.tsx / ProjectsSection.tsx,
-   plus a macOS-style window chrome on each card (traffic-light
-   dots + title bar). The dots are static CSS — zero JS, zero
-   animation cost, purely a styling upgrade.
-
-   Removed vs. earlier versions, and why:
-   - Animated SVG grain, pulsing blobs, scanlines — gone, same as
-     every other section on the site.
-   - Conic/gradient-border "glow card" mask trick — replaced with
-     the plain bordered-glass card + macOS title bar below.
-   - attachMagnetic() mousemove-tracked CTA + ripple — removed;
-     CTA reuses the Hero's plain primary button (hover lift + CSS
-     shine sweep only).
-   - Clip-path star pop-in — plain filled/unfilled star row.
-
-   Kept, because it's real functionality, not decoration:
-   - Draggable / auto-scrolling belt (rAF, pointer drag, resume
-     after release), fully paused when off-screen or dragging.
-   - Review/AggregateRating JSON-LD.
-   - One-time entrance fade via IntersectionObserver.
-───────────────────────────────────────────────────────────── */
 
 const CARD_BASE =
   "group relative w-[clamp(280px,36vw,380px)] flex-none overflow-hidden rounded-[14px] border border-white/[.1] " +
@@ -60,12 +39,15 @@ const DEFAULT_COLOR = CARD_COLORS.blue;
 
 export interface TestimonialItem {
   id: string;
+  slug: string;
   color: keyof typeof CARD_COLORS | string;
   stars: number;
   quote: string;
   name: string;
   role: string;
   initials: string;
+  photoUrl?: string | null;
+  companyUrl?: string | null;
 }
 
 function buildTestimonialsJsonLd(testimonials: TestimonialItem[]) {
@@ -331,7 +313,7 @@ export default function Testimonials({
                 visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
               }`}
             >
-              Aniket Jamunde has delivered {testimonials.length}+ client projects with an average
+              Aniket Jamunde has delivered 21+ client projects with an average
               rating of {avgRating}/5 — real feedback from founders, product leads, and teams
               he&apos;s shipped with.
             </p>
@@ -341,7 +323,7 @@ export default function Testimonials({
           <div
             className={`relative left-1/2 mb-[clamp(1.5rem,3vw,2.5rem)] w-screen -translate-x-1/2 overflow-hidden transition-opacity duration-700 delay-200 ${
               visible ? "opacity-100" : "opacity-0"
-            } before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-[clamp(4rem,10vw,9rem)] before:content-[''] before:[background:linear-gradient(to_right,#000_0%,transparent_100%)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-[clamp(4rem,10vw,9rem)] after:content-[''] after:[background:linear-gradient(to_left,#000_0%,transparent_100%)]`}
+            }`}
           >
             <div className="overflow-hidden py-4">
               <ul
@@ -362,11 +344,11 @@ export default function Testimonials({
                         <span className={`${DOT_BASE} bg-[#febc2e]`} aria-hidden="true" />
                         <span className={`${DOT_BASE} bg-[#28c840]`} aria-hidden="true" />
                         <span className="ml-2 truncate font-body text-[.68rem] font-medium tracking-[.02em] text-white/30">
-                          {t.name.toLowerCase().replace(/\s+/g, "-")}.review
+                          {t.slug || `${t.name.toLowerCase().replace(/\s+/g, "-")}.review`}
                         </span>
                       </div>
 
-                      <div className="p-7 pt-6">
+                      <div className="p-7 pr-0 pt-6">
                         <div className="mb-4 flex items-center justify-between">
                           <Stars count={t.stars} />
                           <span
@@ -383,13 +365,25 @@ export default function Testimonials({
                         </p>
 
                         <div className="flex items-center gap-[.9rem] border-t border-white/[.06] pt-5">
-                          <div
-                            aria-hidden="true"
-                            className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full border border-white/15 font-body text-[.9rem] font-bold text-white"
-                            style={{ background: `linear-gradient(135deg, ${c.a}, ${c.b})` }}
-                          >
-                            {t.initials}
-                          </div>
+                          {t.photoUrl ? (
+                            <img
+                              src={t.photoUrl}
+                              alt={`${t.name} client portrait`}
+                              className="h-[42px] w-[42px] flex-shrink-0 rounded-full border border-white/15 object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <a
+                              href={t.companyUrl || "https://linkedin.com/in/aniket-jamunde-6751163ab"}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label={`View ${t.name} on LinkedIn`}
+                              className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full border border-white/15 text-white transition-colors hover:border-white/30 hover:bg-white/[.05]"
+                              style={{ background: `linear-gradient(135deg, ${c.a}, ${c.b})` }}
+                            >
+                              <Link size={16} />
+                            </a>
+                          )}
                           <div className="flex flex-col gap-[.18rem]">
                             <span className="font-body text-[.88rem] font-semibold text-white/90">
                               {t.name}

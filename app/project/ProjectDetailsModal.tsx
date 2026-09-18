@@ -89,6 +89,8 @@ export default function ProjectDetailsModal({ project, onClose }: ProjectDetails
 
   const accent = project.accentColor || "#ffffff";
   const rating = project.review?.rating ?? 0;
+  const viewHref = project.links?.view;
+  const isDriveLink = Boolean(viewHref && /(?:^|\.)drive\.google\.com|google\.com\/file\/d\//i.test(viewHref));
 
   return createPortal(
     <div
@@ -246,7 +248,7 @@ export default function ProjectDetailsModal({ project, onClose }: ProjectDetails
                 className={LINK_BTN_BASE}
               >
                 <ExternalLink size={15} />
-                View live
+                {isDriveLink ? "Watch demo (2 min)" : "View live"}
               </a>
             )}
             {project.links?.apk && (

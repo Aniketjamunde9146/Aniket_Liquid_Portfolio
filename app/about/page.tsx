@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import Script from "next/script";
+import { PROJECTS_COUNT } from "@/app/lib/siteStats";
 
 const STATS = [
   { label: "Years Experience", value: 3, suffix: "+" },
-  { label: "Projects Delivered", value: 25, suffix: "+" },
+  { label: "Projects Delivered", value: PROJECTS_COUNT, suffix: "+" },
   { label: "Happy Clients", value: 15, suffix: "+" },
   { label: "Tech Mastered", value: 10, suffix: "+" },
 ] as const;

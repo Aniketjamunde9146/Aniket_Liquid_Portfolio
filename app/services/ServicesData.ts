@@ -36,22 +36,22 @@ export const SERVICES: ServiceDetail[] = [
     pricingTiers: [
       {
         label: "Landing Page",
-        price: "₹2,000",
+        price: "Custom quote",
         note: "Single page, 3–5 sections — hero, about, services/features, testimonials, and a contact form",
       },
       {
         label: "Portfolio Website",
-        price: "₹4,500 – ₹7,500",
+        price: "Custom quote",
         note: "Multi-page site — home, about, project gallery, and a contact page",
       },
       {
         label: "Business Website",
-        price: "₹9,000 – ₹15,000",
+        price: "Custom quote",
         note: "5+ pages with a lightweight CMS — service pages, blog setup, and lead-capture forms",
       },
       {
         label: "E-commerce Website",
-        price: "₹17,500+",
+        price: "Custom quote",
         note: "Product catalog, cart, and checkout — includes payment gateway integration and order management",
       },
     ],
@@ -82,17 +82,17 @@ export const SERVICES: ServiceDetail[] = [
     pricingTiers: [
       {
         label: "MVP App",
-        price: "₹17,500 – ₹30,000",
+        price: "Custom quote",
         note: "Core features, single flow — 1 main user flow, basic auth, and a Firebase backend",
       },
       {
         label: "Standard App",
-        price: "₹30,000 – ₹50,000",
+        price: "Custom quote",
         note: "Multiple screens, auth, backend — 5–8 screens, full authentication, and a working database",
       },
       {
         label: "Advanced App",
-        price: "₹50,000+",
+        price: "Custom quote",
         note: "Realtime, payments, complex logic — realtime sync, payment gateway, and custom backend logic",
       },
     ],
@@ -123,17 +123,17 @@ export const SERVICES: ServiceDetail[] = [
     pricingTiers: [
       {
         label: "Basic Setup",
-        price: "₹2,500 – ₹4,000",
+        price: "Custom quote",
         note: "Single project, one environment — domain + SSL setup and a single deploy pipeline",
       },
       {
         label: "Standard Setup",
-        price: "₹4,000 – ₹7,500",
+        price: "Custom quote",
         note: "Staging + production, CI/CD — auto-deploy on push, staging environment, and env management",
       },
       {
         label: "Managed Hosting",
-        price: "₹1,750/mo",
+        price: "Custom quote",
         note: "Ongoing monitoring & support — uptime checks, monthly health report, priority fixes",
       },
     ],
@@ -164,17 +164,17 @@ export const SERVICES: ServiceDetail[] = [
     pricingTiers: [
       {
         label: "Simple Integration",
-        price: "₹6,000 – ₹10,000",
+        price: "Custom quote",
         note: "Chatbot or single AI feature — one LLM-powered feature with tuned prompts",
       },
       {
         label: "Custom Pipeline",
-        price: "₹12,500 – ₹22,500",
+        price: "Custom quote",
         note: "Multi-step automation, custom logic — a full workflow with error handling built in",
       },
       {
         label: "Full AI Product",
-        price: "₹22,500+",
+        price: "Custom quote",
         note: "End-to-end AI-powered feature set — multiple integrated AI features with analytics and scaling considerations",
       },
     ],
@@ -204,17 +204,17 @@ export const SERVICES: ServiceDetail[] = [
     pricingTiers: [
       {
         label: "Simple Game",
-        price: "₹7,500 – ₹12,500",
+        price: "Custom quote",
         note: "Single-player, core mechanics — core game loop, 1–3 levels, basic UI",
       },
       {
         label: "Standard Game",
-        price: "₹12,500 – ₹22,500",
+        price: "Custom quote",
         note: "Multiple levels, scoring, polish — 5+ levels, full scoring system, and a polish pass",
       },
       {
         label: "Multiplayer Game",
-        price: "₹22,500+",
+        price: "Custom quote",
         note: "Realtime sync, matchmaking — realtime multiplayer with matchmaking and backend sync",
       },
     ],
@@ -244,17 +244,17 @@ export const SERVICES: ServiceDetail[] = [
     pricingTiers: [
       {
         label: "Landing Page Design",
-        price: "₹1,500 – ₹3,000",
+        price: "Custom quote",
         note: "3–5 sections, single page — wireframe plus one high-fidelity design, with a mobile version",
       },
       {
         label: "Website UI Kit",
-        price: "₹4,000 – ₹7,500",
+        price: "Custom quote",
         note: "Multi-page, full design system — 5+ page designs plus a reusable component library",
       },
       {
         label: "App UI/UX",
-        price: "₹7,500 – ₹15,000",
+        price: "Custom quote",
         note: "Full app flow, prototype — complete screen flow, interactive prototype, and design system",
       },
     ],

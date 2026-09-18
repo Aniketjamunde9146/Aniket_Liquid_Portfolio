@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { PROJECTS_COUNT } from "@/app/lib/siteStats";
 
 const HEADLINE_WORDS = ["Websites", "&", "Apps,", "Done", "Right"];
 
@@ -142,7 +143,7 @@ export default function Hero() {
           ref={trustRef}
           className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-body text-[0.72rem] text-black/50 will-change-transform dark:text-white/45"
         >
-          <li>9+ Projects Shipped</li>
+          <li>{PROJECTS_COUNT}+ Projects Shipped</li>
           <li>4.9/5 Avg. Client Rating</li>
           <li>Available Now</li>
         </ul>

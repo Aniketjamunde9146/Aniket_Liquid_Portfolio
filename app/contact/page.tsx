@@ -68,8 +68,9 @@ const BTN_PRIMARY =
   "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none";
 
 const inputClass =
-  "w-full rounded-xl border border-white/[.1] bg-white/[.04] px-4 py-[.72rem] font-body text-[0.92rem] text-white outline-none " +
-  "transition-colors duration-300 placeholder:text-white/20 focus:border-white/30 focus:bg-white/[.07] focus:ring-[3px] focus:ring-white/10";
+  "w-full rounded-xl border border-white/[.1] bg-white/[.04] px-4 py-[.72rem] font-body text-[0.92rem] text-black/80 outline-none " +
+  "transition-colors duration-300 placeholder:text-black/40 focus:border-white/30 focus:bg-white/[.07] focus:ring-[3px] focus:ring-white/10 " +
+  "dark:text-white dark:placeholder:text-white/35 dark:focus:border-white/30 dark:focus:bg-white/[.07]";
 
 // Structured data: Organization contact point. Helps search/answer engines
 // surface accurate contact info directly instead of guessing from page text.
@@ -278,7 +279,7 @@ export default function Contact() {
           {/* ── Right column — form card, bordered glass like the rest of the site ── */}
           <div
             ref={cardRef}
-            className={`relative overflow-hidden rounded-[22px] border border-white/[.1] bg-white/[.03] p-6 backdrop-blur-md transition-all delay-100 duration-700 sm:p-9 ${
+            className={`relative overflow-hidden rounded-[22px] border border-white/[.1] bg-white/[.03] py-6 pl-6 pr-0 backdrop-blur-md transition-all delay-100 duration-700 sm:py-9 sm:pl-9 sm:pr-0 ${
               v ? "translate-y-0 scale-100 opacity-100" : "translate-y-6 scale-[.97] opacity-0"
             } ${shake ? "[animation:contactShake_.4s_ease-in-out]" : ""}`}
           >
