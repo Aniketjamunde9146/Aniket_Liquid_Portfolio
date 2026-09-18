@@ -167,6 +167,7 @@ export default function About() {
               height={260}
               loading="lazy"
               sizes="(max-width: 640px) 200px, 260px"
+              style={{ height: "auto" }}
               className="block h-auto w-[clamp(180px,40vw,260px)] [animation:abFloat_5s_ease-in-out_infinite] [filter:drop-shadow(0_18px_44px_rgba(0,0,0,.12))] dark:[filter:drop-shadow(0_18px_44px_rgba(255,255,255,.08))]"
             />
           </div>
@@ -191,7 +192,7 @@ export default function About() {
               <span className="relative z-[1]">Hire Me</span>
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-black/10" />
             </a>
-            <a href="/Aniket_jamunde_CV.png" download aria-label="Download Aniket Jamunde's CV" className={BTN_OUTLINE}>
+            <a href="/cv.pdf" download aria-label="Download Aniket Jamunde's CV" className={BTN_OUTLINE}>
               Download CV
             </a>
           </div>

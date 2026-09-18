@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { getAllSlugs } from "./blogs/blogs";
 
 const baseUrl = "https://aniketwebdev.in";
+const lastModified = "2026-09-18";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogSlugs = await getAllSlugs();
@@ -51,19 +52,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     {
       url: `${baseUrl}/contact`,
-      lastModified: "2026-09-16",
+      lastModified,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/case-studies`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/pricing.md`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/techstack`,
-      lastModified: "2026-09-16",
+      lastModified,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${baseUrl}/terms-and-conditions`,
-      lastModified: "2026-09-16",
+      lastModified,
       changeFrequency: "yearly",
       priority: 0.3,
     },

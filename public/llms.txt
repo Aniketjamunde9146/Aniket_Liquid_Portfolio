@@ -1,5 +1,74 @@
 # Aniket Jamunde
 
+> Aniket Jamunde is a freelance Web Developer and Flutter Developer based in Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, India. He builds fast, conversion-ready websites with React and Next.js and cross-platform mobile apps with Flutter. He is available for freelance work across India and worldwide.
+
+## Verified facts
+- Experience: 3+ years
+- Projects delivered: 21+
+- Happy clients: 15+
+- Average client rating: 4.9/5
+- Location: Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, India
+- Availability: Open for freelance projects in India and worldwide
+
+## Services
+- Web Development: React, Next.js, TypeScript, Tailwind CSS, responsive UI, SEO-ready structure, performance optimization
+- App Development: Flutter, Dart, Firebase, cross-platform mobile apps, realtime features
+- Cloud Hosting: Vercel deployment, Firebase and Node.js setup, CI/CD pipelines, domain and SSL configuration
+- AI and ML Integration: LLM integrations, chatbots, Node.js pipelines, API wrappers, automation
+- Game Development: Flutter or React gameplay, multiplayer logic, Firebase realtime sync
+- UI/UX Design: Figma prototypes, wireframes, and design systems
+- SEO Optimization: on-page SEO, technical audits, and Core Web Vitals improvements
+- Maintenance and Support: bug fixes, security updates, feature upgrades, and post-launch support
+
+## Pricing
+All services use custom quotes. There are no fixed public rates. Quotes depend on project scope, features, design complexity, integrations, and timeline. See https://aniketwebdev.in/pricing.md for the agent-readable pricing brief.
+
+## Tech stack
+- Frontend: React.js, Next.js, TypeScript, JavaScript, HTML5, CSS3, Tailwind CSS
+- Mobile: Flutter, Dart, FlutterFlow
+- Backend and infrastructure: Node.js, Firebase, Supabase, MongoDB, REST APIs
+- Tools: Figma and Git
+
+## Selected projects
+- [The Square Aesthetics](https://squareaesthetics.com): premium skin and hair care clinic website
+- [Grudo](https://grudo-app.web.app/): fitness app landing page with habit-streak positioning
+- [Shaurya Tools](https://shauryatools.vercel.app/): platform bundling 100+ productivity tools
+- [Phulwari](https://www.phulwari.co.in/): childcare and community platform website
+- [Swadyayam](https://swadyayam.web.app/): e-commerce web app with secure payments and Firebase
+- [Sabka Saathi Digital Services](https://www.sabkasaathidigitalservices.com/): digital solutions agency website
+- [Dr's Point Clinic](https://drspointlandingpage.vercel.app/): skin and laser clinic landing page in South Delhi
+- [VS Fitness Club](https://vsfitnessclub.vercel.app/): gym website with WhatsApp integration
+- [Inkfinity Tattoo Studio](https://inkfinitytattoostudio.vercel.app/): tattoo studio website with portfolio gallery
+- [Vione](https://www.vione.cc/): luxury brand website
+- [Smart Edge Education Consultancy](https://www.smartedgeeducationconsultancy.com/): admission and career guidance website
+
+## Case studies
+- [The Square Aesthetics](https://aniketwebdev.in/case-studies): premium clinic website focused on trust and consultation intent
+- [Phulwari](https://aniketwebdev.in/case-studies): education and community platform focused on credibility and clarity
+- [Smart Edge Education Consultancy](https://aniketwebdev.in/case-studies): student advisory website focused on positioning and enquiry intent
+
+## Testimonials
+- Tanya, Dr's Point Clinic: “Working with Aniket was a great experience. He created a clean, trustworthy, and patient-friendly website that reflects our clinic perfectly.”
+- Sabka Saathi Team, Phulwari: “Aniket developed a warm, modern, and responsive website that perfectly represents our vision.”
+- Sabka Saathi Team, Smart Edge Education Consultancy: “Aniket delivered a professional website with an intuitive layout and excellent performance.”
+
+## Blog
+- [AI Coding in 2026: Will AI Replace Web Developers?](https://aniketwebdev.in/blogs/ai-coding-in-2026-will-ai-replace-web-developers)
+- [How to Build Websites That Show Up in Google AI Overviews in 2026](https://aniketwebdev.in/blogs/how-to-build-websites-that-show-up-in-google-ai-overviews-in-2026)
+- [Why Does Every Business Need a Website in 2026?](https://aniketwebdev.in/blogs/why-does-every-business-need-a-website-in-2026)
+- [Why Choose Flutter for App Development in 2026?](https://aniketwebdev.in/blogs/why-choose-flutter-for-app-development-in-2026)
+
+## Contact
+- Email: hello@aniketwebdev.in
+- Phone: +91 9146293702
+- LinkedIn: https://linkedin.com/in/aniket-jamunde-6751163ab
+- GitHub: https://github.com/AniketJamunde9146
+- CV: https://aniketwebdev.in/cv.pdf
+- Website: https://aniketwebdev.in
+
+## Preferred citation
+Aniket Jamunde — Flutter & Web Developer, Maharashtra, India (aniketwebdev.in)# Aniket Jamunde
+
 > Freelance Web Developer & Flutter Developer based in Chhatrapati Sambhajinagar (Aurangabad), Maharashtra, India. Builds fast, conversion-ready websites with React & Next.js and cross-platform mobile apps with Flutter — backed by Firebase, Supabase, and Node.js. 25+ projects delivered, 15+ happy clients, 4.9/5 average rating. Available for freelance work across India and worldwide.
 
 ## About

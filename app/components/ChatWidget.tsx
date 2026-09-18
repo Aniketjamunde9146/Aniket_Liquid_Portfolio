@@ -307,13 +307,19 @@ export default function ChatWidget() {
 
         // Final pass: pull out chips + lead payload, clean the text.
         const { display, suggestions, lead } = parseFinal(rawAccum);
+        const assistantIndex = history.length;
         setMessages((prev) => {
           const next = [...prev];
-          const idx = next.length - 1;
-          next[idx] = { ...next[idx], content: display, suggestions, lead, streaming: false };
-          if (lead) submitLead(lead, idx);
+          next[assistantIndex] = {
+            ...next[assistantIndex],
+            content: display,
+            suggestions,
+            lead,
+            streaming: false,
+          };
           return next;
         });
+        if (lead) submitLead(lead, assistantIndex);
       } catch (err) {
         const e = err as Error;
         if (e.name === "AbortError") {
