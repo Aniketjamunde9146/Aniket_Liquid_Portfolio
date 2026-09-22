@@ -117,6 +117,9 @@ export default function RootLayout({
         <meta name="color-scheme" content="light dark" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+         {/* Bing Seo  */}
+        <meta name="msvalidate.01" content="E432B33EFCDFAF984EB491BB59394773" />
+
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-Y0219C2L68"
